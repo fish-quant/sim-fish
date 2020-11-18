@@ -10,6 +10,11 @@ import numpy as np
 
 import simfish.utils as utils
 
+# TODO add a cluster pattern
+# TODO add a pattern with different densities per area
+# TODO allow a random level per parameter (replacing the boolean?)
+# TODO allow different sigmas for y and x axis
+
 
 def simulate_ground_truth(n=30, random_n=False, frame_shape=(128, 128),
                           sigma_z=None, sigma_yx=150, random_sigma=False,

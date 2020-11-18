@@ -18,6 +18,8 @@ from skimage import img_as_float64
 from skimage import img_as_uint
 from skimage.exposure import rescale_intensity
 
+# TODO add maximum intensity projection
+
 
 # ### Sanity checks dataframe ###
 

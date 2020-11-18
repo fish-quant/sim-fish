@@ -12,6 +12,8 @@ import simfish.utils as utils
 
 from scipy.special import erf
 
+# TODO generate grid at nanometer scale (instead of 5nm currently)
+
 
 # ### Gaussian computation ###
 

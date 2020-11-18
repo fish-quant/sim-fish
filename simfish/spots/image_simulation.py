@@ -15,6 +15,9 @@ from .spot_simulation import precompute_erf
 from .spot_simulation import add_spots
 from .noise_simulation import add_white_noise
 
+# TODO add foci simulation
+# TODO allow image resizing to simulate subpixel localizations.
+
 
 def simulate_spots(image_shape=(128, 128), image_dtype=np.uint16,
                    voxel_size_z=None, voxel_size_yx=100,

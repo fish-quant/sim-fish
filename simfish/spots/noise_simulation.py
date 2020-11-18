@@ -10,6 +10,8 @@ import numpy as np
 
 import simfish.utils as utils
 
+# TODO add illumination bias
+
 
 def add_white_noise(image, noise_level, random_level=0.05):
     """Generate and add white noise to an image.
