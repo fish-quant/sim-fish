@@ -52,7 +52,7 @@ def simulate_ground_truth(n=30, random_n=False, frame_shape=(128, 128),
     Returns
     -------
     ground_truth : np.ndarray
-        Ground truth array with shape (nb_spots, 4) or (nb_spots, 6).
+        Ground truth array with shape (nb_spots, 6) or (nb_spots, 4).
         - coordinate_z (optional)
         - coordinate_y
         - coordinate_x
