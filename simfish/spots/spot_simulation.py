@@ -301,7 +301,7 @@ def add_spots(image, ground_truth, voxel_size_z=None, voxel_size_yx=100,
     image : np.ndarray, np.uint
         Image with shape (z, y, x) or (y, x).
     ground_truth : np.ndarray
-        Ground truth array with shape (nb_spots, 4) or (nb_spots, 6).
+        Ground truth array with shape (nb_spots, 6) or (nb_spots, 4).
         - coordinate_z (optional)
         - coordinate_y
         - coordinate_x
@@ -428,14 +428,14 @@ def _add_spot_3d(image, ground_truth, voxel_size_z, voxel_size_yx,
     return new_image
 
 
-def _initialize_grid_3d(image, voxel_size_z, voxel_size_yx):
+def _initialize_grid_3d(image_spot, voxel_size_z, voxel_size_yx):
     """Build a grid in nanometer to compute gaussian function values over a
     full volume.
 
     Parameters
     ----------
-    image : np.ndarray
-        A 3-d image with shape (z, y, x).
+    image_spot : np.ndarray
+        A 3-d image with detected spot and shape (z, y, x).
     voxel_size_z : int or float
         Height of a voxel, along the z axis, in nanometer.
     voxel_size_yx : int or float
@@ -448,21 +448,21 @@ def _initialize_grid_3d(image, voxel_size_z, voxel_size_yx):
 
     """
     # get targeted size
-    nb_z, nb_y, nb_x = image.shape
-    nb_pixels = image.size
+    nb_z, nb_y, nb_x = image_spot.shape
+    nb_pixels = image_spot.size
 
     # build meshgrid
     zz, yy, xx = np.meshgrid(np.arange(nb_z), np.arange(nb_y), np.arange(nb_x),
                              indexing="ij")
-    zz *= voxel_size_z
-    yy *= voxel_size_yx
-    xx *= voxel_size_yx
+    zz = zz.astype(np.float32) * float(voxel_size_z)
+    yy = yy.astype(np.float32) * float(voxel_size_yx)
+    xx = xx.astype(np.float32) * float(voxel_size_yx)
 
     # format result
     grid = np.zeros((3, nb_pixels), dtype=np.float32)
-    grid[0] = np.reshape(zz, (1, nb_pixels)).astype(np.float32)
-    grid[1] = np.reshape(yy, (1, nb_pixels)).astype(np.float32)
-    grid[2] = np.reshape(xx, (1, nb_pixels)).astype(np.float32)
+    grid[0] = np.reshape(zz, (1, nb_pixels))
+    grid[1] = np.reshape(yy, (1, nb_pixels))
+    grid[2] = np.reshape(xx, (1, nb_pixels))
 
     return grid
 
@@ -522,14 +522,14 @@ def _add_spot_2d(image, ground_truth, voxel_size_yx, precomputed_gaussian):
     return new_image
 
 
-def _initialize_grid_2d(image, voxel_size_yx):
+def _initialize_grid_2d(image_spot, voxel_size_yx):
     """Build a grid in nanometer to compute gaussian function values over a
     full surface.
 
     Parameters
     ----------
-    image : np.ndarray
-        A 2-d image with shape (y, x).
+    image_spot : np.ndarray
+        A 2-d image with detected spot and shape (y, x).
     voxel_size_yx : int or float
         Size of a voxel on the yx plan, in nanometer.
 
@@ -540,17 +540,17 @@ def _initialize_grid_2d(image, voxel_size_yx):
 
     """
     # get targeted size
-    nb_y, nb_x = image.shape
-    nb_pixels = image.size
+    nb_y, nb_x = image_spot.shape
+    nb_pixels = image_spot.size
 
     # build meshgrid
     yy, xx = np.meshgrid(np.arange(nb_y), np.arange(nb_x), indexing="ij")
-    yy *= voxel_size_yx
-    xx *= voxel_size_yx
+    yy = yy.astype(np.float32) * float(voxel_size_yx)
+    xx = xx.astype(np.float32) * float(voxel_size_yx)
 
     # format result
     grid = np.zeros((2, nb_pixels), dtype=np.float32)
-    grid[0] = np.reshape(yy, (1, nb_pixels)).astype(np.float32)
-    grid[1] = np.reshape(xx, (1, nb_pixels)).astype(np.float32)
+    grid[0] = np.reshape(yy, (1, nb_pixels))
+    grid[1] = np.reshape(xx, (1, nb_pixels))
 
     return grid
