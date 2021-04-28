@@ -15,13 +15,13 @@ import bigfish.detection as detection
 
 def add_spots(image, ground_truth, voxel_size_z=None, voxel_size_yx=100,
               precomputed_gaussian=None):
-    """Simulate spots based on the ground truth coordinates.
+    """Simulate gaussian spots based on the ground truth coordinates.
 
     Parameters
     ----------
     image : np.ndarray, np.uint
         Image with shape (z, y, x) or (y, x).
-    ground_truth : np.ndarray
+    ground_truth : np.ndarray, np.float64
         Ground truth array with shape (nb_spots, 6) or (nb_spots, 4).
         - coordinate_z (optional)
         - coordinate_y
@@ -88,7 +88,7 @@ def add_spots(image, ground_truth, voxel_size_z=None, voxel_size_yx=100,
 
 def _add_spot_3d(image, ground_truth, voxel_size_z, voxel_size_yx,
                  precomputed_gaussian):
-    """Add a 3-d spot in an image.
+    """Add a 3-d gaussian spot in an image.
 
     Parameters
     ----------
@@ -158,7 +158,7 @@ def _add_spot_3d(image, ground_truth, voxel_size_z, voxel_size_yx,
 
 
 def _add_spot_2d(image, ground_truth, voxel_size_yx, precomputed_gaussian):
-    """Add a 2-d spot in an image.
+    """Add a 2-d gaussian spot in an image.
 
     Parameters
     ----------

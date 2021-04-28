@@ -20,12 +20,12 @@ from .noise_simulation import add_white_noise
 
 def simulate_images(n_images,
                     image_shape=(128, 128), image_dtype=np.uint16,
+                    subpixel_factors=None,
                     voxel_size_z=None, voxel_size_yx=100,
                     n_spots=30, random_n_spots=False,
                     n_clusters=0, random_n_clusters=False, n_spots_cluster=0,
                     sigma_z=None, sigma_yx=150, random_sigma=0.05,
                     amplitude=5000, random_amplitude=0.05,
-                    subpixel_factors=None,
                     noise_level=300, random_noise=0.05):
     """Simulate ground truth coordinates and images of spots.
 
@@ -37,6 +37,10 @@ def simulate_images(n_images,
         Shape (z, y, x) or (y, x) of the image to simulate.
     image_dtype : type
         Type of the image to simulate (np.uint8 or np.uint16).
+    subpixel_factors : Tuple[int] or List[int]
+        Scaling factors to simulate an image with subpixel accuracy. First a
+        larger image is simulated, with larger spots, then we downscale it. One
+        element per dimension. If None, spots are localized at pixel level.
     voxel_size_z : int or float or None
         Height of a voxel, along the z axis, in nanometer. If None, we
         consider a 2-d image.
@@ -67,10 +71,6 @@ def simulate_images(n_images,
     random_amplitude : int or float
         Margin allowed around the amplitude value. The formula used is
         margin = parameter * random_level.
-    subpixel_factors : Tuple[int] or List[int]
-        Scaling factors to simulate an image with subpixel accuracy. First a
-        larger image is simulated, with larger spots, then we downscale it. One
-        element per dimension. If None, spots are localized at pixel level.
     noise_level : int or float
         Reference level of noise background to add in the image.
     random_noise : int or float
@@ -96,6 +96,7 @@ def simulate_images(n_images,
     stack.check_parameter(n_images=int,
                           image_shape=(tuple, list),
                           image_dtype=type,
+                          subpixel_factors=(tuple, type(None)),
                           voxel_size_z=(int, float, type(None)),
                           voxel_size_yx=(int, float),
                           n_spots=(int, tuple),
@@ -149,7 +150,7 @@ def simulate_images(n_images,
 
     # precompute spots if possible
     if random_sigma == 0:
-        max_size = max(200, max(image_shape))
+        max_size = max(image_shape)
         tables_erf = detection.precompute_erf(
             voxel_size_z=voxel_size_z, voxel_size_yx=voxel_size_yx,
             sigma_z=sigma_z, sigma_yx=sigma_yx, max_grid=max_size)
@@ -184,12 +185,12 @@ def simulate_images(n_images,
 
 
 def simulate_image(image_shape=(128, 128), image_dtype=np.uint16,
+                   subpixel_factors=None,
                    voxel_size_z=None, voxel_size_yx=100,
                    n_spots=30, random_n_spots=False,
                    n_clusters=0, random_n_clusters=False, n_spots_cluster=0,
                    sigma_z=None, sigma_yx=150, random_sigma=0.05,
                    amplitude=5000, random_amplitude=0.05,
-                   subpixel_factors=None,
                    noise_level=300,
                    random_noise=0.05,
                    precomputed_erf=None):
@@ -201,6 +202,10 @@ def simulate_image(image_shape=(128, 128), image_dtype=np.uint16,
         Shape (z, y, x) or (y, x) of the image to simulate.
     image_dtype : type
         Type of the image to simulate (np.uint8 or np.uint16).
+    subpixel_factors : Tuple[int] or List[int]
+        Scaling factors to simulate an image with subpixel accuracy. First a
+        larger image is simulated, with larger spots, then we downscale it. One
+        element per dimension. If None, spots are localized at pixel level.
     voxel_size_z : int or float or None
         Height of a voxel, along the z axis, in nanometer. If None, we
         consider a 2-d image.
@@ -231,10 +236,6 @@ def simulate_image(image_shape=(128, 128), image_dtype=np.uint16,
     random_amplitude : int or float
         Margin allowed around the amplitude value. The formula used is
         margin = parameter * random_level.
-    subpixel_factors : Tuple[int] or List[int]
-        Scaling factors to simulate an image with subpixel accuracy. First a
-        larger image is simulated, with larger spots, then we downscale it. One
-        element per dimension. If None, spots are localized at pixel level.
     noise_level : int or float
         Reference level of noise background to add in the image.
     random_noise : int or float
@@ -260,6 +261,7 @@ def simulate_image(image_shape=(128, 128), image_dtype=np.uint16,
     # check parameters
     stack.check_parameter(image_shape=(tuple, list),
                           image_dtype=type,
+                          subpixel_factors=(tuple, type(None)),
                           voxel_size_z=(int, float, type(None)),
                           voxel_size_yx=(int, float),
                           n_spots=int,

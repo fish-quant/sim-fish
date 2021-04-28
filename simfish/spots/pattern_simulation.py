@@ -52,7 +52,7 @@ def simulate_ground_truth(n_spots=30, random_n_spots=False, n_clusters=0,
 
     Returns
     -------
-    ground_truth : np.ndarray
+    ground_truth : np.ndarray, np.float64
         Ground truth array with shape (nb_spots, 6) or (nb_spots, 4).
         - coordinate_z (optional)
         - coordinate_y
@@ -120,6 +120,7 @@ def simulate_ground_truth(n_spots=30, random_n_spots=False, n_clusters=0,
     else:
         ground_truth = np.stack((positions_y, positions_x,
                                  sigmas_yx, amplitudes)).T
+    ground_truth = ground_truth.astype(np.float64)
 
     return ground_truth
 
