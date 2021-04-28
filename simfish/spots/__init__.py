@@ -3,7 +3,7 @@
 # License: BSD 3 clause
 
 """
-The simfish.spots subpackage includes function to simulate RNA spot in 2-d
+The simfish.spots subpackage includes function to simulate RNA spots in 2-d
 and 3-d.
 """
 
@@ -17,7 +17,8 @@ from .spot_simulation import precompute_erf
 
 from .noise_simulation import add_white_noise
 
-from .image_simulation import simulate_spots
+from .image_simulation import simulate_images
+from .image_simulation import simulate_image
 
 
 _utils = [
@@ -35,7 +36,8 @@ _noise = [
     "add_white_noise"]
 
 _images = [
-    "simulate_spots"]
+    "simulate_images",
+    "simulate_image"]
 
 
 __all__ = _utils + _patterns + _spots + _noise + _images

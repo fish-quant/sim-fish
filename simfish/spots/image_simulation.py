@@ -17,21 +17,23 @@ from .spot_simulation import precompute_erf
 from .spot_simulation import add_spots
 from .noise_simulation import add_white_noise
 
-# TODO add cluster simulation
 
-
-def simulate_spots(image_shape=(128, 128), image_dtype=np.uint16,
-                   voxel_size_z=None, voxel_size_yx=100,
-                   n=30, random_n=False,
-                   sigma_z=None, sigma_yx=150, random_sigma=False,
-                   amplitude=5000, random_amplitude=False,
-                   subpixel_factors=None,
-                   noise_level=300,
-                   random_level=0.05):
-    """Simulate ground truth coordinates and image of spots.
+def simulate_images(n_images,
+                    image_shape=(128, 128), image_dtype=np.uint16,
+                    voxel_size_z=None, voxel_size_yx=100,
+                    n_spots=30, random_n_spots=False,
+                    n_clusters=0, random_n_clusters=False, n_spots_cluster=0,
+                    sigma_z=None, sigma_yx=150, random_sigma=0.05,
+                    amplitude=5000, random_amplitude=0.05,
+                    subpixel_factors=None,
+                    noise_level=300,
+                    random_noise=0.05):
+    """Simulate ground truth coordinates and images of spots.
 
     Parameters
     ----------
+    n_images : int
+        Number of images to simulate.
     image_shape : Tuple[int or float] or List[int of float]
         Shape (z, y, x) or (y, x) of the image to simulate.
     image_dtype : type
@@ -41,62 +43,78 @@ def simulate_spots(image_shape=(128, 128), image_dtype=np.uint16,
         consider a 2-d image.
     voxel_size_yx : int or float
         Size of a voxel on the yx plan, in nanometer.
-    n : int
+    n_spots : int
         Expected number of spots to simulate.
-    random_n : bool
+    random_n_spots : bool
         Make the number of spots follow a Poisson distribution with
-        expectation n, instead of a constant predefined value.
+        expectation n_spots, instead of a constant predefined value.
+    n_clusters : int
+        Expected number of clusters to simulate.
+    random_n_clusters : bool
+        Make the number of spots follow a Poisson distribution with
+        expectation n_clusters, instead of a constant predefined value.
+    n_spots_cluster : int
+        Expected number of spots per cluster to simulate.
     sigma_z : int, float or None
         Standard deviation of the gaussian along the z axis, in nanometer. If
         None, we consider a 2-d image.
     sigma_yx : int or float
         Standard deviation of the gaussian along the yx axis, in nanometer.
-    random_sigma : bool
-        Make sigmas follow a tight normal distribution around the provided
-        sigma values.
+    random_sigma : int of float
+        Sigmas follow a normal distribution around the provided sigma values.
+        The scale used is scale = sigma_axis * random_sigma
     amplitude : int or float
         Amplitude of the gaussians.
-    random_amplitude : bool
-        Make amplitudes follow a uniform distribution around the provided
-        amplitude value.
+    random_amplitude : int or float
+        Margin allowed around the amplitude value. The formula used is
+        margin = parameter * random_level.
     subpixel_factors : Tuple[int] or List[int]
         Scaling factors to simulate an image with subpixel accuracy. First a
         larger image is simulated, with larger spots, then we downscale it. One
         element per dimension. If None, spots are localized at pixel level.
     noise_level : int or float
         Reference level of noise background to add in the image.
-    random_level : float
-        Margin allowed to change gaussian parameters provided. The formula
-        used is margin = parameter * random_level
+    random_noise : int or float
+        Background noise follows a normal distribution around the provided
+        noise values. The scale used is scale = noise_level * random_noise
 
     Returns
     -------
-    image : np.ndarray, np.uint
-        Simulated images with spots and shape (z, y, x) or (y, x).
-    ground_truth : np.ndarray
-        Ground truth array with shape (nb_spots, 6) or (nb_spots, 4).
-        - coordinate_z (optional)
-        - coordinate_y
-        - coordinate_x
-        - sigma_z (optional)
-        - sigma_yx
-        - amplitude
+    _ : Tuple generator
+        image : np.ndarray, np.uint
+            Simulated images with spots and shape (z, y, x) or (y, x).
+        ground_truth : np.ndarray
+            Ground truth array with shape (nb_spots, 6) or (nb_spots, 4).
+            - coordinate_z (optional)
+            - coordinate_y
+            - coordinate_x
+            - sigma_z (optional)
+            - sigma_yx
+            - amplitude
 
     """
     # check parameters
-    utils.check_parameter(image_shape=(tuple, list),
+    utils.check_parameter(n_images=int,
+                          image_shape=(tuple, list),
                           image_dtype=type,
                           voxel_size_z=(int, float, type(None)),
                           voxel_size_yx=(int, float),
-                          n=int,
-                          random_n=bool,
+                          n_spots=(int, tuple),
+                          random_n_spots=bool,
+                          n_clusters=int,
+                          random_n_clusters=bool,
+                          n_spots_cluster=int,
                           sigma_z=(int, float, type(None)),
                           sigma_yx=(int, float),
-                          random_sigma=bool,
+                          random_sigma=(int, float),
                           amplitude=(int, float),
-                          random_amplitude=bool,
+                          random_amplitude=(int, float),
                           noise_level=(int, float),
-                          random_level=float)
+                          random_noise=(int, float))
+
+    # check number of images
+    if n_images < 0:
+        raise ValueError("'n_images' should be positive.")
 
     # check image dtype
     if image_dtype not in [np.uint8, np.uint16]:
@@ -120,6 +138,174 @@ def simulate_spots(image_shape=(128, 128), image_dtype=np.uint16,
                              "not {1}.".format(ndim, len(subpixel_factors)))
 
     # scale image simulation in order to reach subpixel accuracy
+    original_image_shape = image_shape
+    original_voxel_size_z = voxel_size_z
+    original_voxel_size_yx = voxel_size_yx
+    if subpixel_factors is not None:
+        image_shape = tuple([image_shape[i] * subpixel_factors[i]
+                             for i in range(len(image_shape))])
+        if ndim == 3:
+            voxel_size_z /= subpixel_factors[0]
+        voxel_size_yx /= subpixel_factors[-1]
+
+    # precompute spots if possible
+    if random_sigma == 0:
+        max_size = max(200, max(image_shape))
+        tables_erf = precompute_erf(
+            voxel_size_z=voxel_size_z, voxel_size_yx=voxel_size_yx,
+            sigma_z=sigma_z, sigma_yx=sigma_yx, grid_size=max_size)
+    else:
+        tables_erf = None
+
+    # define number of spots
+    if isinstance(n_spots, tuple):
+        l_n = np.linspace(n_spots[0], n_spots[1], num=n_images, dtype=np.int64)
+    else:
+        l_n = None
+
+    # simulate images
+    for i in range(n_images):
+        if l_n is not None:
+            n_spots = int(l_n[i])
+        image, ground_truth = simulate_image(
+            image_shape=original_image_shape, image_dtype=image_dtype,
+            voxel_size_z=original_voxel_size_z,
+            voxel_size_yx=original_voxel_size_yx,
+            n_spots=n_spots, random_n_spots=random_n_spots,
+            n_clusters=n_clusters, random_n_clusters=random_n_clusters,
+            n_spots_cluster=n_spots_cluster,
+            sigma_z=sigma_z, sigma_yx=sigma_yx, random_sigma=random_sigma,
+            amplitude=amplitude, random_amplitude=random_amplitude,
+            subpixel_factors=subpixel_factors,
+            noise_level=noise_level,
+            random_noise=random_noise,
+            precomputed_erf=tables_erf)
+
+        yield image, ground_truth
+
+
+def simulate_image(image_shape=(128, 128), image_dtype=np.uint16,
+                   voxel_size_z=None, voxel_size_yx=100,
+                   n_spots=30, random_n_spots=False,
+                   n_clusters=0, random_n_clusters=False, n_spots_cluster=0,
+                   sigma_z=None, sigma_yx=150, random_sigma=0.05,
+                   amplitude=5000, random_amplitude=0.05,
+                   subpixel_factors=None,
+                   noise_level=300,
+                   random_noise=0.05,
+                   precomputed_erf=None):
+    """Simulate ground truth coordinates and image of spots.
+
+    Parameters
+    ----------
+    image_shape : Tuple[int or float] or List[int of float]
+        Shape (z, y, x) or (y, x) of the image to simulate.
+    image_dtype : type
+        Type of the image to simulate (np.uint8 or np.uint16).
+    voxel_size_z : int or float or None
+        Height of a voxel, along the z axis, in nanometer. If None, we
+        consider a 2-d image.
+    voxel_size_yx : int or float
+        Size of a voxel on the yx plan, in nanometer.
+    n_spots : int
+        Expected number of spots to simulate.
+    random_n_spots : bool
+        Make the number of spots follow a Poisson distribution with
+        expectation n_spots, instead of a constant predefined value.
+    n_clusters : int
+        Expected number of clusters to simulate.
+    random_n_clusters : bool
+        Make the number of spots follow a Poisson distribution with
+        expectation n_clusters, instead of a constant predefined value.
+    n_spots_cluster : int
+        Expected number of spots per cluster to simulate.
+    sigma_z : int, float or None
+        Standard deviation of the gaussian along the z axis, in nanometer. If
+        None, we consider a 2-d image.
+    sigma_yx : int or float
+        Standard deviation of the gaussian along the yx axis, in nanometer.
+    random_sigma : int of float
+        Sigmas follow a normal distribution around the provided sigma values.
+        The scale used is scale = sigma_axis * random_sigma
+    amplitude : int or float
+        Amplitude of the gaussians.
+    random_amplitude : int or float
+        Margin allowed around the amplitude value. The formula used is
+        margin = parameter * random_level.
+    subpixel_factors : Tuple[int] or List[int]
+        Scaling factors to simulate an image with subpixel accuracy. First a
+        larger image is simulated, with larger spots, then we downscale it. One
+        element per dimension. If None, spots are localized at pixel level.
+    noise_level : int or float
+        Reference level of noise background to add in the image.
+    random_noise : int or float
+        Background noise follows a normal distribution around the provided
+        noise values. The scale used is scale = noise_level * random_noise
+    precomputed_erf : Tuple[np.ndarray] or None
+        Precomputed gaussian signals.
+
+    Returns
+    -------
+    image : np.ndarray, np.uint
+        Simulated images with spots and shape (z, y, x) or (y, x).
+    ground_truth : np.ndarray
+        Ground truth array with shape (nb_spots, 6) or (nb_spots, 4).
+        - coordinate_z (optional)
+        - coordinate_y
+        - coordinate_x
+        - sigma_z (optional)
+        - sigma_yx
+        - amplitude
+
+    """
+    # check parameters
+    utils.check_parameter(image_shape=(tuple, list),
+                          image_dtype=type,
+                          voxel_size_z=(int, float, type(None)),
+                          voxel_size_yx=(int, float),
+                          n_spots=int,
+                          random_n_spots=bool,
+                          n_clusters=int,
+                          random_n_clusters=bool,
+                          n_spots_cluster=int,
+                          sigma_z=(int, float, type(None)),
+                          sigma_yx=(int, float),
+                          random_sigma=(int, float),
+                          amplitude=(int, float),
+                          random_amplitude=(int, float),
+                          noise_level=(int, float),
+                          random_noise=(int, float),
+                          precomputed_erf=(tuple, type(None)))
+
+    # check image dtype
+    if image_dtype not in [np.uint8, np.uint16]:
+        raise ValueError("'image_dtype' should be np.uint8 or np.uint16, not "
+                         "{0}.".format(image_dtype))
+
+    # check dimensions
+    ndim = len(image_shape)
+    if ndim not in [2, 3]:
+        raise ValueError("'image_shape' should have 2 or 3 elements, not {0}."
+                         .format(ndim))
+    if ndim == 3 and voxel_size_z is None:
+        raise ValueError("Image to simulate has 3 dimensions but "
+                         "'voxel_size_z' is missing.")
+    if ndim == 3 and sigma_z is None:
+        raise ValueError("Image to simulate has 3 dimensions but 'sigma_z' is "
+                         "missing.")
+    if subpixel_factors is not None:
+        if len(subpixel_factors) != ndim:
+            raise ValueError("'subpixel_factors' should have {0} elements, "
+                             "not {1}.".format(ndim, len(subpixel_factors)))
+
+    # check precomputed gaussian signals
+    if random_sigma:
+        precomputed_erf = None
+    if precomputed_erf is not None:
+        for table_erf in precomputed_erf:
+            utils.check_array(table_erf, ndim=2, dtype=np.float64)
+
+    # scale image simulation in order to reach subpixel accuracy
     if subpixel_factors is not None:
         image_shape = tuple([image_shape[i] * subpixel_factors[i]
                              for i in range(len(image_shape))])
@@ -132,24 +318,18 @@ def simulate_spots(image_shape=(128, 128), image_dtype=np.uint16,
 
     # generate ground truth
     ground_truth = simulate_ground_truth(
-        n=n, random_n=random_n, frame_shape=image_shape,
-        sigma_z=sigma_z, sigma_yx=sigma_yx, random_sigma=random_sigma,
-        amplitude=amplitude, random_amplitude=random_amplitude,
-        random_level=random_level)
-
-    # precompute spots if possible
-    if not random_sigma:
-        tables_erf = precompute_erf(
-            voxel_size_z=voxel_size_z, voxel_size_yx=voxel_size_yx,
-            sigma_z=sigma_z, sigma_yx=sigma_yx, grid_size=image.size)
-    else:
-        tables_erf = None
+        n_spots=n_spots, random_n_spots=random_n_spots,
+        n_clusters=n_clusters, random_n_clusters=random_n_clusters,
+        n_spots_cluster=n_spots_cluster,
+        frame_shape=image_shape, sigma_z=sigma_z, sigma_yx=sigma_yx,
+        random_sigma=random_sigma, amplitude=amplitude,
+        random_amplitude=random_amplitude)
 
     # simulate spots
     image = add_spots(
         image, ground_truth,
         voxel_size_z=voxel_size_z, voxel_size_yx=voxel_size_yx,
-        precomputed_gaussian=tables_erf)
+        precomputed_gaussian=precomputed_erf)
 
     # adapt image resolution in case of subpixel simulation
     if subpixel_factors is not None:
@@ -158,7 +338,7 @@ def simulate_spots(image_shape=(128, 128), image_dtype=np.uint16,
 
     # add background noise
     image = add_white_noise(
-        image, noise_level=noise_level, random_level=random_level)
+        image, noise_level=noise_level, random_noise=random_noise)
 
     return image, ground_truth
 

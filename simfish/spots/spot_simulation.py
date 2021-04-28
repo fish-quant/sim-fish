@@ -19,7 +19,7 @@ from scipy.special import erf
 
 def precompute_erf(voxel_size_z=None, voxel_size_yx=100, sigma_z=None,
                    sigma_yx=200, grid_size=200):
-    """Precompute different values for the erf with a resolution of 5 nm.
+    """Precompute different values for the erf with a nanometer resolution.
 
     Parameters
     ----------
@@ -44,16 +44,17 @@ def precompute_erf(voxel_size_z=None, voxel_size_yx=100, sigma_z=None,
 
     """
     # check parameters
-    utils.check_parameter(voxel_size_z=(int, type(None)),
-                          voxel_size_yx=int,
+    utils.check_parameter(voxel_size_z=(float, int, type(None)),
+                          voxel_size_yx=(float, int),
                           sigma_z=(float, int, type(None)),
                           sigma_yx=(float, int),
                           grid_size=int)
 
-    # build a grid with a spatial resolution of 5 nm and a size of
+    # build a grid with a spatial resolution of 1 nm and a size of
     # max_grid * resolution nm
-    yy = np.array([i for i in range(0, grid_size * voxel_size_yx, 5)])
-    xx = np.array([i for i in range(0, grid_size * voxel_size_yx, 5)])
+    max_size_yx = np.ceil(grid_size * voxel_size_yx).astype(np.int64)
+    yy = np.array([i for i in range(0, max_size_yx)])
+    xx = np.array([i for i in range(0, max_size_yx)])
     mu_y, mu_x = 0, 0
 
     # compute erf values for this grid
@@ -74,7 +75,8 @@ def precompute_erf(voxel_size_z=None, voxel_size_yx=100, sigma_z=None,
         return table_erf_y, table_erf_x
 
     else:
-        zz = np.array([i for i in range(0, grid_size * voxel_size_z, 5)])
+        max_size_z = np.ceil(grid_size * voxel_size_z).astype(np.int64)
+        zz = np.array([i for i in range(0, max_size_z)])
         mu_z = 0
         erf_z = _rescaled_erf(low=zz - voxel_size_z / 2,
                               high=zz + voxel_size_z / 2,
@@ -107,6 +109,7 @@ def _rescaled_erf(low, high, mu, sigma):
         Rescaled erf along a specific axis.
 
     """
+    # TODO to speed up
     # compute erf and normalize it
     low_ = (low - mu) / (np.sqrt(2) * sigma)
     high_ = (high - mu) / (np.sqrt(2) * sigma)
@@ -125,14 +128,14 @@ def _gaussian_3d(grid, mu_z, mu_y, mu_x, sigma_z, sigma_yx, voxel_size_z,
 
     Parameters
     ----------
-    grid : np.ndarray, np.float
+    grid : np.ndarray, np.int64
         Grid data to compute the gaussian function for different voxel within
         a volume V. In nanometer, with shape (3, V_z * V_y * V_x).
-    mu_z : float
+    mu_z : int
         Estimated mean of the gaussian signal along z axis, in nanometer.
-    mu_y : float
+    mu_y : int
         Estimated mean of the gaussian signal along y axis, in nanometer.
-    mu_x : float
+    mu_x : int
         Estimated mean of the gaussian signal along x axis, in nanometer.
     sigma_z : int or float
         Standard deviation of the gaussian along the z axis, in nanometer.
@@ -157,6 +160,7 @@ def _gaussian_3d(grid, mu_z, mu_y, mu_x, sigma_z, sigma_yx, voxel_size_z,
         parameters. Shape (V_z * V_y * V_x,).
 
     """
+    # TODO to speed up
     # get grid data to design a volume V
     meshgrid_z = grid[0]
     meshgrid_y = grid[1]
@@ -170,9 +174,9 @@ def _gaussian_3d(grid, mu_z, mu_y, mu_x, sigma_z, sigma_yx, voxel_size_z,
         table_erf_x = precomputed[2]
 
         # get indices for the tables
-        i_z = np.around(np.abs(meshgrid_z - mu_z) / 5).astype(np.int64)
-        i_y = np.around(np.abs(meshgrid_y - mu_y) / 5).astype(np.int64)
-        i_x = np.around(np.abs(meshgrid_x - mu_x) / 5).astype(np.int64)
+        i_z = np.abs(meshgrid_z - mu_z)
+        i_y = np.abs(meshgrid_y - mu_y)
+        i_x = np.abs(meshgrid_x - mu_x)
 
         # get precomputed values
         voxel_integral_z = table_erf_z[i_z, 1]
@@ -220,12 +224,12 @@ def _gaussian_2d(grid, mu_y, mu_x, sigma_yx, voxel_size_yx, psf_amplitude,
 
     Parameters
     ----------
-    grid : np.ndarray, np.float
+    grid : np.ndarray, np.int64
         Grid data to compute the gaussian function for different voxel within
         a surface S. In nanometer, with shape (2, S_y * S_x).
-    mu_y : float
+    mu_y : int
         Estimated mean of the gaussian signal along y axis, in nanometer.
-    mu_x : float
+    mu_x : int
         Estimated mean of the gaussian signal along x axis, in nanometer.
     sigma_yx : int or float
         Standard deviation of the gaussian along the yx axis, in nanometer.
@@ -246,6 +250,7 @@ def _gaussian_2d(grid, mu_y, mu_x, sigma_yx, voxel_size_yx, psf_amplitude,
         parameters. Shape (S_y * S_x,).
 
     """
+    # TODO to speed up
     # get grid data to design a surface S
     meshgrid_y = grid[0]
     meshgrid_x = grid[1]
@@ -257,8 +262,8 @@ def _gaussian_2d(grid, mu_y, mu_x, sigma_yx, voxel_size_yx, psf_amplitude,
         table_erf_x = precomputed[1]
 
         # get indices for the tables
-        i_y = np.around(np.abs(meshgrid_y - mu_y) / 5).astype(np.int64)
-        i_x = np.around(np.abs(meshgrid_x - mu_x) / 5).astype(np.int64)
+        i_y = np.abs(meshgrid_y - mu_y)
+        i_x = np.abs(meshgrid_x - mu_x)
 
         # get precomputed values
         voxel_integral_y = table_erf_y[i_y, 1]
@@ -294,7 +299,7 @@ def _gaussian_2d(grid, mu_y, mu_x, sigma_yx, voxel_size_yx, psf_amplitude,
 
 def add_spots(image, ground_truth, voxel_size_z=None, voxel_size_yx=100,
               precomputed_gaussian=None):
-    """Fit as many gaussians as possible in the candidate clustered regions.
+    """Simulate spots based on the ground truth coordinates.
 
     Parameters
     ----------
@@ -396,8 +401,8 @@ def _add_spot_3d(image, ground_truth, voxel_size_z, voxel_size_yx,
 
     """
     # reshape and cast image
-    image_raw = np.reshape(image, image.size)
-    image_raw = image_raw.astype(np.float64)
+    expectations_raw = np.reshape(image, image.size)
+    expectations_raw = expectations_raw.astype(np.float64)
 
     # build a grid to represent this image
     grid = _initialize_grid_3d(image, voxel_size_z, voxel_size_yx)
@@ -407,11 +412,11 @@ def _add_spot_3d(image, ground_truth, voxel_size_z, voxel_size_yx,
         position_spot = np.asarray((coord_z, coord_y, coord_x), dtype=np.int64)
         position_spot = np.ravel_multi_index(position_spot, dims=image.shape)
         position_spot = list(grid[:, position_spot])
-        image_raw += _gaussian_3d(
+        expectations_raw += _gaussian_3d(
             grid=grid,
-            mu_z=float(position_spot[0]),
-            mu_y=float(position_spot[1]),
-            mu_x=float(position_spot[2]),
+            mu_z=position_spot[0],
+            mu_y=position_spot[1],
+            mu_x=position_spot[2],
             sigma_z=sigma_z,
             sigma_yx=sigma_yx,
             voxel_size_z=voxel_size_z,
@@ -419,6 +424,10 @@ def _add_spot_3d(image, ground_truth, voxel_size_z, voxel_size_yx,
             psf_amplitude=amp,
             psf_background=0,
             precomputed=precomputed_gaussian)
+
+    # sample Poisson distribution from gaussian values
+    image_raw = np.random.poisson(lam=expectations_raw,
+                                  size=expectations_raw.size)
 
     # reshape and cast image
     new_image = np.reshape(image_raw, image.shape)
@@ -443,7 +452,7 @@ def _initialize_grid_3d(image_spot, voxel_size_z, voxel_size_yx):
 
     Returns
     -------
-    grid : np.ndarray, np.float32
+    grid : np.ndarray, np.int64
         A grid with the shape (3, z * y * x), in nanometer.
 
     """
@@ -463,6 +472,7 @@ def _initialize_grid_3d(image_spot, voxel_size_z, voxel_size_yx):
     grid[0] = np.reshape(zz, (1, nb_pixels))
     grid[1] = np.reshape(yy, (1, nb_pixels))
     grid[2] = np.reshape(xx, (1, nb_pixels))
+    grid = np.round(grid).astype(np.int64)
 
     return grid
 
@@ -493,8 +503,8 @@ def _add_spot_2d(image, ground_truth, voxel_size_yx, precomputed_gaussian):
 
     """
     # reshape and cast image
-    image_raw = np.reshape(image, image.size)
-    image_raw = image_raw.astype(np.float64)
+    expectations_raw = np.reshape(image, image.size)
+    expectations_raw = expectations_raw.astype(np.float64)
 
     # build a grid to represent this image
     grid = _initialize_grid_2d(image, voxel_size_yx)
@@ -504,15 +514,19 @@ def _add_spot_2d(image, ground_truth, voxel_size_yx, precomputed_gaussian):
         position_spot = np.asarray((coord_y, coord_x), dtype=np.int64)
         position_spot = np.ravel_multi_index(position_spot, dims=image.shape)
         position_spot = list(grid[:, position_spot])
-        image_raw += _gaussian_2d(
+        expectations_raw += _gaussian_2d(
             grid=grid,
-            mu_y=float(position_spot[0]),
-            mu_x=float(position_spot[1]),
+            mu_y=position_spot[0],
+            mu_x=position_spot[1],
             sigma_yx=sigma_yx,
             voxel_size_yx=voxel_size_yx,
             psf_amplitude=amp,
             psf_background=0,
             precomputed=precomputed_gaussian)
+
+    # sample Poisson distribution from gaussian values
+    image_raw = np.random.poisson(lam=expectations_raw,
+                                  size=expectations_raw.size)
 
     # reshape and cast image
     new_image = np.reshape(image_raw, image.shape)
@@ -535,7 +549,7 @@ def _initialize_grid_2d(image_spot, voxel_size_yx):
 
     Returns
     -------
-    grid : np.ndarray, np.float32
+    grid : np.ndarray, np.int64
         A grid with the shape (2, y * x), in nanometer.
 
     """
@@ -552,5 +566,6 @@ def _initialize_grid_2d(image_spot, voxel_size_yx):
     grid = np.zeros((2, nb_pixels), dtype=np.float32)
     grid[0] = np.reshape(yy, (1, nb_pixels))
     grid[1] = np.reshape(xx, (1, nb_pixels))
+    grid = np.round(grid).astype(np.int64)
 
     return grid

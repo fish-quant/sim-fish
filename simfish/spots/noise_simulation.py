@@ -13,7 +13,7 @@ import simfish.utils as utils
 # TODO add illumination bias
 
 
-def add_white_noise(image, noise_level, random_level=0.05):
+def add_white_noise(image, noise_level, random_noise=0.05):
     """Generate and add white noise to an image.
 
     Parameters
@@ -22,9 +22,9 @@ def add_white_noise(image, noise_level, random_level=0.05):
         Image with shape (z, y, x) or (y, x).
     noise_level : int or float
         Reference level of noise background to add in the image.
-    random_level : float
-        Margin allowed to scale the white noise. The formula used is
-        scale = noise_level * random_level
+    random_noise : int or float
+        Background noise follows a normal distribution around the provided
+        noise values. The scale used is scale = noise_level * random_noise
 
     Returns
     -------
@@ -37,10 +37,10 @@ def add_white_noise(image, noise_level, random_level=0.05):
                       ndim=[2, 3],
                       dtype=[np.uint8, np.uint16])
     utils.check_parameter(noise_level=(int, float),
-                          random_level=float)
+                          random_noise=(int, float))
 
     # compute scale
-    scale = noise_level * random_level
+    scale = noise_level * random_noise
 
     # generate noise
     noise = np.random.normal(loc=noise_level, scale=scale, size=image.size)
