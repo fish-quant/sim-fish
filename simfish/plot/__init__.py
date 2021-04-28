@@ -6,13 +6,11 @@
 The simfish.plot subpackage includes functions to plot images.
 """
 
-from .plot_images import plot_yx
-from .plot_images import plot_images
+from .plot_images import plot_spots
 
 
 _images = [
-    "plot_yx",
-    "plot_images"]
+    "plot_spots"]
 
 
 __all__ = _images

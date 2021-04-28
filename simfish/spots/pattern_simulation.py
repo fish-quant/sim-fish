@@ -7,8 +7,7 @@ Functions to simulate spots patterns.
 """
 
 import numpy as np
-
-import simfish.utils as utils
+import bigfish.stack as stack
 
 # TODO add a pattern with different densities per area
 
@@ -64,7 +63,7 @@ def simulate_ground_truth(n_spots=30, random_n_spots=False, n_clusters=0,
 
     """
     # check parameters
-    utils.check_parameter(n_spots=int,
+    stack.check_parameter(n_spots=int,
                           random_n_spots=bool,
                           n_clusters=int,
                           random_n_clusters=bool,

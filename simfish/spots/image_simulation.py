@@ -7,13 +7,13 @@ Functions to simulate smFISH images.
 """
 
 import numpy as np
+import bigfish.stack as stack
+import bigfish.detection as detection
 
 from skimage.transform import downscale_local_mean
 
-import simfish.utils as utils
 
 from .pattern_simulation import simulate_ground_truth
-from .spot_simulation import precompute_erf
 from .spot_simulation import add_spots
 from .noise_simulation import add_white_noise
 
@@ -26,8 +26,7 @@ def simulate_images(n_images,
                     sigma_z=None, sigma_yx=150, random_sigma=0.05,
                     amplitude=5000, random_amplitude=0.05,
                     subpixel_factors=None,
-                    noise_level=300,
-                    random_noise=0.05):
+                    noise_level=300, random_noise=0.05):
     """Simulate ground truth coordinates and images of spots.
 
     Parameters
@@ -94,7 +93,7 @@ def simulate_images(n_images,
 
     """
     # check parameters
-    utils.check_parameter(n_images=int,
+    stack.check_parameter(n_images=int,
                           image_shape=(tuple, list),
                           image_dtype=type,
                           voxel_size_z=(int, float, type(None)),
@@ -151,9 +150,9 @@ def simulate_images(n_images,
     # precompute spots if possible
     if random_sigma == 0:
         max_size = max(200, max(image_shape))
-        tables_erf = precompute_erf(
+        tables_erf = detection.precompute_erf(
             voxel_size_z=voxel_size_z, voxel_size_yx=voxel_size_yx,
-            sigma_z=sigma_z, sigma_yx=sigma_yx, grid_size=max_size)
+            sigma_z=sigma_z, sigma_yx=sigma_yx, max_grid=max_size)
     else:
         tables_erf = None
 
@@ -259,7 +258,7 @@ def simulate_image(image_shape=(128, 128), image_dtype=np.uint16,
 
     """
     # check parameters
-    utils.check_parameter(image_shape=(tuple, list),
+    stack.check_parameter(image_shape=(tuple, list),
                           image_dtype=type,
                           voxel_size_z=(int, float, type(None)),
                           voxel_size_yx=(int, float),
@@ -303,7 +302,7 @@ def simulate_image(image_shape=(128, 128), image_dtype=np.uint16,
         precomputed_erf = None
     if precomputed_erf is not None:
         for table_erf in precomputed_erf:
-            utils.check_array(table_erf, ndim=2, dtype=np.float64)
+            stack.check_array(table_erf, ndim=2, dtype=np.float64)
 
     # scale image simulation in order to reach subpixel accuracy
     if subpixel_factors is not None:
@@ -378,10 +377,10 @@ def downscale_image(image, ground_truth, factors):
 
     """
     # check parameters
-    utils.check_array(image,
+    stack.check_array(image,
                       ndim=[2, 3],
                       dtype=[np.uint8, np.uint16])
-    utils.check_parameter(factors=(tuple, list))
+    stack.check_parameter(factors=(tuple, list))
 
     # check dimensions
     ndim = len(image.shape)
