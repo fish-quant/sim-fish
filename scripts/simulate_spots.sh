@@ -21,17 +21,17 @@ voxel_size_z=100
 voxel_size_yx=100
 n_spots_min=1
 n_spots_max=10
-random_n_spots=0
+random_n_spots=1
 n_clusters=0
 random_n_clusters=0
 n_spots_cluster=0
 sigma_z=100
 sigma_yx=100
-random_sigma=0.
+random_sigma=0.05
 amplitude=5000
-random_amplitude=0.
+random_amplitude=0.05
 noise_level=300
-random_noise=0.
+random_noise=0.05
 
 python "$script" "$output_directory" "$experiment" "$n_images" \
         "$image_z" "$image_y" "$image_x" \
