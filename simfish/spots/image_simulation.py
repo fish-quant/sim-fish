@@ -137,26 +137,6 @@ def simulate_images(n_images,
             raise ValueError("'subpixel_factors' should have {0} elements, "
                              "not {1}.".format(ndim, len(subpixel_factors)))
 
-    # scale image simulation in order to reach subpixel accuracy
-    original_image_shape = image_shape
-    original_voxel_size_z = voxel_size_z
-    original_voxel_size_yx = voxel_size_yx
-    if subpixel_factors is not None:
-        image_shape = tuple([image_shape[i] * subpixel_factors[i]
-                             for i in range(len(image_shape))])
-        if ndim == 3:
-            voxel_size_z /= subpixel_factors[0]
-        voxel_size_yx /= subpixel_factors[-1]
-
-    # precompute spots if possible
-    if random_sigma == 0:
-        max_size = max(image_shape)
-        tables_erf = detection.precompute_erf(
-            voxel_size_z=voxel_size_z, voxel_size_yx=voxel_size_yx,
-            sigma_z=sigma_z, sigma_yx=sigma_yx, max_grid=max_size)
-    else:
-        tables_erf = None
-
     # define number of spots
     if isinstance(n_spots, tuple):
         l_n = np.linspace(n_spots[0], n_spots[1], num=n_images, dtype=np.int64)
@@ -168,18 +148,23 @@ def simulate_images(n_images,
         if l_n is not None:
             n_spots = int(l_n[i])
         image, ground_truth = simulate_image(
-            image_shape=original_image_shape, image_dtype=image_dtype,
-            voxel_size_z=original_voxel_size_z,
-            voxel_size_yx=original_voxel_size_yx,
-            n_spots=n_spots, random_n_spots=random_n_spots,
-            n_clusters=n_clusters, random_n_clusters=random_n_clusters,
-            n_spots_cluster=n_spots_cluster,
-            sigma_z=sigma_z, sigma_yx=sigma_yx, random_sigma=random_sigma,
-            amplitude=amplitude, random_amplitude=random_amplitude,
+            image_shape=image_shape,
+            image_dtype=image_dtype,
             subpixel_factors=subpixel_factors,
+            voxel_size_z=voxel_size_z,
+            voxel_size_yx=voxel_size_yx,
+            n_spots=n_spots,
+            random_n_spots=random_n_spots,
+            n_clusters=n_clusters,
+            random_n_clusters=random_n_clusters,
+            n_spots_cluster=n_spots_cluster,
+            sigma_z=sigma_z,
+            sigma_yx=sigma_yx,
+            random_sigma=random_sigma,
+            amplitude=amplitude,
+            random_amplitude=random_amplitude,
             noise_level=noise_level,
-            random_noise=random_noise,
-            precomputed_erf=tables_erf)
+            random_noise=random_noise)
 
         yield image, ground_truth
 
@@ -192,8 +177,7 @@ def simulate_image(image_shape=(128, 128), image_dtype=np.uint16,
                    sigma_z=None, sigma_yx=150, random_sigma=0.05,
                    amplitude=5000, random_amplitude=0.05,
                    noise_level=300,
-                   random_noise=0.05,
-                   precomputed_erf=None):
+                   random_noise=0.05):
     """Simulate ground truth coordinates and image of spots.
 
     Parameters
@@ -241,8 +225,6 @@ def simulate_image(image_shape=(128, 128), image_dtype=np.uint16,
     random_noise : int or float
         Background noise follows a normal distribution around the provided
         noise values. The scale used is scale = noise_level * random_noise
-    precomputed_erf : Tuple[np.ndarray] or None
-        Precomputed gaussian signals.
 
     Returns
     -------
@@ -275,8 +257,7 @@ def simulate_image(image_shape=(128, 128), image_dtype=np.uint16,
                           amplitude=(int, float),
                           random_amplitude=(int, float),
                           noise_level=(int, float),
-                          random_noise=(int, float),
-                          precomputed_erf=(tuple, type(None)))
+                          random_noise=(int, float))
 
     # check image dtype
     if image_dtype not in [np.uint8, np.uint16]:
@@ -299,37 +280,44 @@ def simulate_image(image_shape=(128, 128), image_dtype=np.uint16,
             raise ValueError("'subpixel_factors' should have {0} elements, "
                              "not {1}.".format(ndim, len(subpixel_factors)))
 
-    # check precomputed gaussian signals
-    if random_sigma:
-        precomputed_erf = None
-    if precomputed_erf is not None:
-        for table_erf in precomputed_erf:
-            stack.check_array(table_erf, ndim=2, dtype=np.float64)
-
     # scale image simulation in order to reach subpixel accuracy
-    if subpixel_factors is not None:
-        image_shape = tuple([image_shape[i] * subpixel_factors[i]
-                             for i in range(len(image_shape))])
-        if ndim == 3:
-            voxel_size_z /= subpixel_factors[0]
-        voxel_size_yx /= subpixel_factors[-1]
+    image_shape, voxel_size_z, voxel_size_yx = _scale_subpixel(
+        image_shape=image_shape,
+        subpixel_factors=subpixel_factors,
+        voxel_size_z=voxel_size_z,
+        voxel_size_yx=voxel_size_yx)
 
     # initialize image
     image = np.zeros(image_shape, dtype=image_dtype)
 
     # generate ground truth
     ground_truth = simulate_ground_truth(
-        n_spots=n_spots, random_n_spots=random_n_spots,
-        n_clusters=n_clusters, random_n_clusters=random_n_clusters,
+        n_spots=n_spots,
+        random_n_spots=random_n_spots,
+        n_clusters=n_clusters,
+        random_n_clusters=random_n_clusters,
         n_spots_cluster=n_spots_cluster,
-        frame_shape=image_shape, sigma_z=sigma_z, sigma_yx=sigma_yx,
-        random_sigma=random_sigma, amplitude=amplitude,
+        frame_shape=image_shape,
+        sigma_z=sigma_z,
+        sigma_yx=sigma_yx,
+        random_sigma=random_sigma,
+        amplitude=amplitude,
         random_amplitude=random_amplitude)
+
+    # precompute spots if possible
+    precomputed_erf = _precompute_gaussian(
+        ground_truth=ground_truth,
+        random_sigma=random_sigma,
+        voxel_size_z=voxel_size_z,
+        voxel_size_yx=voxel_size_yx,
+        sigma_z=sigma_z,
+        sigma_yx=sigma_yx)
 
     # simulate spots
     image = add_spots(
         image, ground_truth,
-        voxel_size_z=voxel_size_z, voxel_size_yx=voxel_size_yx,
+        voxel_size_z=voxel_size_z,
+        voxel_size_yx=voxel_size_yx,
         precomputed_gaussian=precomputed_erf)
 
     # adapt image resolution in case of subpixel simulation
@@ -342,6 +330,59 @@ def simulate_image(image_shape=(128, 128), image_dtype=np.uint16,
         image, noise_level=noise_level, random_noise=random_noise)
 
     return image, ground_truth
+
+
+def _scale_subpixel(image_shape, subpixel_factors, voxel_size_z, voxel_size_yx):
+    # get number of dimensions
+    ndim = len(image_shape)
+
+    # scale image simulation in order to reach subpixel accuracy
+    if subpixel_factors is not None:
+        image_shape = tuple([image_shape[i] * subpixel_factors[i]
+                             for i in range(len(image_shape))])
+        if ndim == 3:
+            voxel_size_z /= subpixel_factors[0]
+        voxel_size_yx /= subpixel_factors[-1]
+
+    return image_shape, voxel_size_z, voxel_size_yx
+
+
+def _precompute_gaussian(ground_truth, random_sigma, voxel_size_z,
+                         voxel_size_yx, sigma_z, sigma_yx):
+    # precompute gaussian spots if possible
+    if random_sigma == 0:
+
+        if len(ground_truth.shape) == 6:
+            max_sigma_z = max(ground_truth[:, 3])
+            max_sigma_yx = max(ground_truth[:, 4])
+            radius_z, radius_yx, _ = stack.get_radius(
+                voxel_size_z=voxel_size_z, voxel_size_yx=voxel_size_yx,
+                psf_z=max_sigma_z, psf_yx=max_sigma_yx)
+            radius_z = np.ceil(radius_z).astype(np.int64)
+            z_shape = radius_z * 2 + 1
+            radius_yx = np.ceil(radius_yx).astype(np.int64)
+            yx_shape = radius_yx * 2 + 1
+            max_size = int(max(z_shape, yx_shape) + 1)
+            precomputed_erf = detection.precompute_erf(
+                voxel_size_z=voxel_size_z, voxel_size_yx=voxel_size_yx,
+                sigma_z=sigma_z, sigma_yx=sigma_yx, max_grid=max_size)
+
+        else:
+            max_sigma_yx = max(ground_truth[:, 2])
+            radius_yx, _ = stack.get_radius(
+                voxel_size_z=None, voxel_size_yx=voxel_size_yx,
+                psf_z=None, psf_yx=max_sigma_yx)
+            radius_yx = np.ceil(radius_yx).astype(np.int64)
+            yx_shape = radius_yx * 2 + 1
+            max_size = int(yx_shape + 1)
+            precomputed_erf = detection.precompute_erf(
+                voxel_size_z=None, voxel_size_yx=voxel_size_yx,
+                sigma_z=None, sigma_yx=sigma_yx, max_grid=max_size)
+
+    else:
+        precomputed_erf = None
+
+    return precomputed_erf
 
 
 def downscale_image(image, ground_truth, factors):
@@ -401,7 +442,6 @@ def downscale_image(image, ground_truth, factors):
                                             cval=image.min(), clip=True)
 
     # adapt coordinates
-    # TODO ground truth does not match exactly with image (0.5 drift)
     ground_truth[:, 0] /= factors[0]
     ground_truth[:, 1] /= factors[1]
     if ndim == 3:

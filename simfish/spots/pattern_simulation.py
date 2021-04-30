@@ -338,8 +338,10 @@ def _get_sigma(ndim, sigma_z, sigma_yx, random_sigma, nb_spots):
     if ndim == 3:
         scale = sigma_z * random_sigma
         sigmas_z = np.random.normal(loc=sigma_z, scale=scale, size=nb_spots)
+        sigmas_z[sigmas_z < 1] = 1.
     scale = sigma_yx * random_sigma
     sigmas_yx = np.random.normal(loc=sigma_yx, scale=scale, size=nb_spots)
+    sigmas_yx[sigmas_yx < 1] = 1.
 
     return sigmas_z, sigmas_yx
 
