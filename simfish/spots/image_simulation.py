@@ -46,8 +46,10 @@ def simulate_images(n_images,
         consider a 2-d image.
     voxel_size_yx : int or float
         Size of a voxel on the yx plan, in nanometer.
-    n_spots : int
-        Expected number of spots to simulate.
+    n_spots : int or Tuple[int]
+        Expected number of spots to simulate per image. If tuple, provide the
+        minimum and maximum number of spots to simulate. Multiple images are
+        simulated with a growing number of spots.
     random_n_spots : bool
         Make the number of spots follow a Poisson distribution with
         expectation n_spots, instead of a constant predefined value.

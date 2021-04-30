@@ -42,13 +42,13 @@ def plot_spots(image, ground_truth=None, prediction=None, subpixel=False,
         Rescale pixel values of the image (made by default in matplotlib).
     contrast : bool
         Contrast image.
-    title : str
+    title : str or None
         Title of the image.
     framesize : tuple
         Size of the frame used to plot with 'plt.figure(figsize=framesize)'.
     remove_frame : bool
         Remove axes and frame.
-    path_output : str
+    path_output : str or None
         Path to save the image (without extension).
     ext : str or List[str]
         Extension used to save the plot. If it is a list of strings, the plot
