@@ -164,7 +164,9 @@ if __name__ == "__main__":
     image_dtype = np.uint16
     voxel_size_z = args.voxel_size_z
     voxel_size_yx = args.voxel_size_yx
-    n_spots = args.n_spots
+    n_spots_min = args.n_spots_min
+    n_spots_max = args.n_spots_max
+    n_spots = (n_spots_min, n_spots_max)
     random_n_spots = bool(args.random_n_spots)
     n_clusters = args.n_clusters
     random_n_clusters = bool(args.random_n_clusters)
@@ -177,8 +179,22 @@ if __name__ == "__main__":
     noise_level = args.noise_level
     random_noise = args.random_noise
 
+    # folders
+    path_directory = os.path.join(output_directory, experiment)
+    if not os.path.exists(path_directory):
+        os.mkdir(path_directory)
+    path_directory_image = os.path.join(path_directory, "images")
+    if not os.path.exists(path_directory_image):
+        os.mkdir(path_directory_image)
+    path_directory_gt = os.path.join(path_directory, "gt")
+    if not os.path.exists(path_directory_gt):
+        os.mkdir(path_directory_gt)
+    path_directory_plot = os.path.join(path_directory, "plots")
+    if not os.path.exists(path_directory_plot):
+        os.mkdir(path_directory_plot)
+
     # save log
-    path_log_file = os.path.join(output_directory, experiment, "log")
+    path_log_file = os.path.join(path_directory, "log.txt")
     sys.stdout = Logger(path_log_file)
 
     # display information
@@ -203,20 +219,6 @@ if __name__ == "__main__":
     print("Noise level: {0}".format(noise_level))
     print("Random noise: {0}".format(random_noise))
     print()
-
-    # folders
-    path_directory = os.path.join(output_directory, "experiment")
-    if not os.path.exists(path_directory):
-        os.mkdir(path_directory)
-    path_directory_image = os.path.join(path_directory, "images")
-    if not os.path.exists(path_directory_image):
-        os.mkdir(path_directory_image)
-    path_directory_gt = os.path.join(path_directory, "gt")
-    if not os.path.exists(path_directory_gt):
-        os.mkdir(path_directory_gt)
-    path_directory_plot = os.path.join(path_directory, "plots")
-    if not os.path.exists(path_directory_plot):
-        os.mkdir(path_directory_plot)
 
     # define number of spots
     l_n = np.linspace(n_spots[0], n_spots[1], num=n_images, dtype=np.int64)
@@ -253,7 +255,8 @@ if __name__ == "__main__":
         path = os.path.join(path_directory_plot, "plot_{0}.png".format(i))
         subpixel = True if subpixel_factors is not None else False
         plot.plot_spots(
-            image, ground_truth,
+            image,
+            ground_truth=ground_truth,
             prediction=None,
             subpixel=subpixel,
             rescale=True,
@@ -268,7 +271,7 @@ if __name__ == "__main__":
         return
 
     # parallelization
-    Parallel(n_jobs=-1)(delayed(fct_to_process)(i, n)
+    Parallel(n_jobs=-1)(delayed(fct_to_process)(i, int(n))
                         for i, n in enumerate(l_n))
 
     print()
