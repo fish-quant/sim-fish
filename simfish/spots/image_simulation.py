@@ -300,27 +300,32 @@ def simulate_image(image_shape=(128, 128), image_dtype=np.uint16,
         random_n_clusters=random_n_clusters,
         n_spots_cluster=n_spots_cluster,
         frame_shape=image_shape,
+        voxel_size_z=voxel_size_z,
+        voxel_size_yx=voxel_size_yx,
         sigma_z=sigma_z,
         sigma_yx=sigma_yx,
         random_sigma=random_sigma,
         amplitude=amplitude,
         random_amplitude=random_amplitude)
 
-    # precompute spots if possible
-    precomputed_erf = _precompute_gaussian(
-        ground_truth=ground_truth,
-        random_sigma=random_sigma,
-        voxel_size_z=voxel_size_z,
-        voxel_size_yx=voxel_size_yx,
-        sigma_z=sigma_z,
-        sigma_yx=sigma_yx)
+    # skip these steps if no spots are simulated
+    if len(ground_truth) > 0:
 
-    # simulate spots
-    image = add_spots(
-        image, ground_truth,
-        voxel_size_z=voxel_size_z,
-        voxel_size_yx=voxel_size_yx,
-        precomputed_gaussian=precomputed_erf)
+        # precompute spots if possible
+        precomputed_erf = _precompute_gaussian(
+            ground_truth=ground_truth,
+            random_sigma=random_sigma,
+            voxel_size_z=voxel_size_z,
+            voxel_size_yx=voxel_size_yx,
+            sigma_z=sigma_z,
+            sigma_yx=sigma_yx)
+
+        # simulate spots
+        image = add_spots(
+            image, ground_truth,
+            voxel_size_z=voxel_size_z,
+            voxel_size_yx=voxel_size_yx,
+            precomputed_gaussian=precomputed_erf)
 
     # adapt image resolution in case of subpixel simulation
     if subpixel_factors is not None:
@@ -334,7 +339,8 @@ def simulate_image(image_shape=(128, 128), image_dtype=np.uint16,
     return image, ground_truth
 
 
-def _scale_subpixel(image_shape, subpixel_factors, voxel_size_z, voxel_size_yx):
+def _scale_subpixel(image_shape, subpixel_factors, voxel_size_z,
+                    voxel_size_yx):
     # get number of dimensions
     ndim = len(image_shape)
 

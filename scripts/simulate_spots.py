@@ -223,7 +223,6 @@ if __name__ == "__main__":
     # define number of spots
     l_n = np.linspace(n_spots[0], n_spots[1], num=n_images, dtype=np.int64)
 
-
     def fct_to_process(i, n):
         # simulate images
         image, ground_truth = spots.simulate_image(
@@ -256,7 +255,7 @@ if __name__ == "__main__":
         subpixel = True if subpixel_factors is not None else False
         plot.plot_spots(
             image,
-            ground_truth=ground_truth,
+            ground_truth=None,
             prediction=None,
             subpixel=subpixel,
             rescale=True,
@@ -271,8 +270,8 @@ if __name__ == "__main__":
         return
 
     # parallelization
-    Parallel(n_jobs=-1)(delayed(fct_to_process)(i, int(n))
-                        for i, n in enumerate(l_n))
+    Parallel(n_jobs=4)(delayed(fct_to_process)(i, int(n))
+                       for i, n in enumerate(l_n))
 
     print()
     print("Script done!")
