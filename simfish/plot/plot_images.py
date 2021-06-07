@@ -143,7 +143,7 @@ def plot_spots(image, ground_truth=None, prediction=None, subpixel=False,
     else:
         plt.yticks(y_ticks)
         plt.xticks(x_ticks)
-    if title is not None and not remove_frame:
+    if title is not None:
         plt.title(title, fontweight="bold", fontsize=25)
     if not remove_frame:
         plt.tight_layout()

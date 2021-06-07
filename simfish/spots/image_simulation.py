@@ -23,8 +23,9 @@ def simulate_images(n_images,
                     subpixel_factors=None,
                     voxel_size_z=None, voxel_size_yx=100,
                     n_spots=30, random_n_spots=False,
-                    n_clusters=0, random_n_clusters=False, n_spots_cluster=0,
-                    sigma_z=None, sigma_yx=150, random_sigma=0.05,
+                    n_clusters=0, random_n_clusters=False,
+                    n_spots_cluster=0, random_n_spots_cluster=False,
+                    sigma_z=None, sigma_yx=150, random_sigma=0,
                     amplitude=5000, random_amplitude=0.05,
                     noise_level=300, random_noise=0.05):
     """Simulate ground truth coordinates and images of spots.
@@ -60,6 +61,9 @@ def simulate_images(n_images,
         expectation n_clusters, instead of a constant predefined value.
     n_spots_cluster : int
         Expected number of spots per cluster to simulate.
+    random_n_spots_cluster : bool
+        Make the number of spots follow a Poisson distribution with
+        expectation n_spots_cluster, instead of a constant predefined value.
     sigma_z : int, float or None
         Standard deviation of the gaussian along the z axis, in nanometer. If
         None, we consider a 2-d image.
@@ -106,6 +110,7 @@ def simulate_images(n_images,
                           n_clusters=int,
                           random_n_clusters=bool,
                           n_spots_cluster=int,
+                          random_n_spots_cluster=bool,
                           sigma_z=(int, float, type(None)),
                           sigma_yx=(int, float),
                           random_sigma=(int, float),
@@ -160,6 +165,7 @@ def simulate_images(n_images,
             n_clusters=n_clusters,
             random_n_clusters=random_n_clusters,
             n_spots_cluster=n_spots_cluster,
+            random_n_spots_cluster=random_n_spots_cluster,
             sigma_z=sigma_z,
             sigma_yx=sigma_yx,
             random_sigma=random_sigma,
@@ -176,10 +182,9 @@ def simulate_image(image_shape=(128, 128), image_dtype=np.uint16,
                    voxel_size_z=None, voxel_size_yx=100,
                    n_spots=30, random_n_spots=False,
                    n_clusters=0, random_n_clusters=False, n_spots_cluster=0,
-                   sigma_z=None, sigma_yx=150, random_sigma=0.05,
-                   amplitude=5000, random_amplitude=0.05,
-                   noise_level=300,
-                   random_noise=0.05):
+                   random_n_spots_cluster=False,  sigma_z=None, sigma_yx=150,
+                   random_sigma=0.05, amplitude=5000, random_amplitude=0.05,
+                   noise_level=300, random_noise=0.05):
     """Simulate ground truth coordinates and image of spots.
 
     Parameters
@@ -209,6 +214,9 @@ def simulate_image(image_shape=(128, 128), image_dtype=np.uint16,
         expectation n_clusters, instead of a constant predefined value.
     n_spots_cluster : int
         Expected number of spots per cluster to simulate.
+    random_n_spots_cluster : bool
+        Make the number of spots follow a Poisson distribution with
+        expectation n_spots_cluster, instead of a constant predefined value.
     sigma_z : int, float or None
         Standard deviation of the gaussian along the z axis, in nanometer. If
         None, we consider a 2-d image.
@@ -253,6 +261,7 @@ def simulate_image(image_shape=(128, 128), image_dtype=np.uint16,
                           n_clusters=int,
                           random_n_clusters=bool,
                           n_spots_cluster=int,
+                          random_n_spots_cluster=bool,
                           sigma_z=(int, float, type(None)),
                           sigma_yx=(int, float),
                           random_sigma=(int, float),
@@ -292,6 +301,9 @@ def simulate_image(image_shape=(128, 128), image_dtype=np.uint16,
     # initialize image
     image = np.zeros(image_shape, dtype=image_dtype)
 
+    # compensate noise level in amplitude
+    amplitude -= noise_level
+
     # generate ground truth
     ground_truth = simulate_ground_truth(
         n_spots=n_spots,
@@ -299,6 +311,7 @@ def simulate_image(image_shape=(128, 128), image_dtype=np.uint16,
         n_clusters=n_clusters,
         random_n_clusters=random_n_clusters,
         n_spots_cluster=n_spots_cluster,
+        random_n_spots_cluster=random_n_spots_cluster,
         frame_shape=image_shape,
         voxel_size_z=voxel_size_z,
         voxel_size_yx=voxel_size_yx,
@@ -360,7 +373,7 @@ def _precompute_gaussian(ground_truth, random_sigma, voxel_size_z,
     # precompute gaussian spots if possible
     if random_sigma == 0:
 
-        if len(ground_truth.shape) == 6:
+        if ground_truth.shape[1] == 6:
             max_sigma_z = max(ground_truth[:, 3])
             max_sigma_yx = max(ground_truth[:, 4])
             radius_z, radius_yx, _ = stack.get_radius(

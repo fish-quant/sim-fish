@@ -14,9 +14,9 @@ import bigfish.stack as stack
 
 def simulate_ground_truth(n_spots=30, random_n_spots=False, n_clusters=0,
                           random_n_clusters=False, n_spots_cluster=0,
-                          frame_shape=(128, 128), voxel_size_z=None,
-                          voxel_size_yx=100, sigma_z=None, sigma_yx=150,
-                          random_sigma=0.05, amplitude=5000,
+                          random_n_spots_cluster=False, frame_shape=(128, 128),
+                          voxel_size_z=None, voxel_size_yx=100, sigma_z=None,
+                          sigma_yx=150, random_sigma=0.05, amplitude=5000,
                           random_amplitude=0.05):
     """ Simulate ground truth information about the simulated spots like their
     coordinates, standard deviations and amplitude.
@@ -35,6 +35,9 @@ def simulate_ground_truth(n_spots=30, random_n_spots=False, n_clusters=0,
         expectation n_clusters, instead of a constant predefined value.
     n_spots_cluster : int
         Expected number of spots to simulate per cluster.
+    random_n_spots_cluster : bool
+        Make the number of spots follow a Poisson distribution with
+        expectation n_spots_cluster, instead of a constant predefined value.
     frame_shape : Tuple[int or float] or List[int of float]
         Shape (z, y, x) or (y, x) of the image to simulate.
     voxel_size_z : int or float or None
@@ -74,6 +77,7 @@ def simulate_ground_truth(n_spots=30, random_n_spots=False, n_clusters=0,
                           n_clusters=int,
                           random_n_clusters=bool,
                           n_spots_cluster=int,
+                          random_n_spots_cluster=bool,
                           frame_shape=(tuple, list),
                           voxel_size_z=(int, float, type(None)),
                           voxel_size_yx=(int, float),
@@ -102,7 +106,8 @@ def simulate_ground_truth(n_spots=30, random_n_spots=False, n_clusters=0,
     (positions_z_clusters, positions_y_clusters, positions_x_clusters,
      remaining_spots) = _get_clusters(
         frame_shape, ndim, nb_spots, n_clusters, random_n_clusters,
-        n_spots_cluster, voxel_size_z, voxel_size_yx, sigma_z, sigma_yx)
+        n_spots_cluster, random_n_spots_cluster, voxel_size_z, voxel_size_yx,
+        sigma_z, sigma_yx)
 
     # simulate positions
     (positions_z_spots, positions_y_spots,
@@ -163,8 +168,8 @@ def _get_nb_spots(n, random_n):
 
 
 def _get_clusters(frame_shape, ndim, nb_spots, n_clusters, random_n_clusters,
-                  n_spots_cluster, voxel_size_z, voxel_size_yx, sigma_z,
-                  sigma_yx):
+                  n_spots_cluster, random_n_spots_cluster, voxel_size_z,
+                  voxel_size_yx, sigma_z, sigma_yx):
     """Generate number of clusters and coordinates for clustered spots.
 
     Parameters
@@ -181,7 +186,10 @@ def _get_clusters(frame_shape, ndim, nb_spots, n_clusters, random_n_clusters,
         Make the number of clusters follow a Poisson distribution with
         expectation n_clusters, instead of a constant predefined value.
     n_spots_cluster : int
-        Expected number of clusters to simulate per cluster.
+        Expected number of spots to simulate per cluster.
+    random_n_spots_cluster : bool
+        Make the number of spots follow a Poisson distribution with
+        expectation n_spots_cluster, instead of a constant predefined value.
     voxel_size_z : int or float or None
         Height of a voxel, along the z axis, in nanometer. If None, we
         consider a 2-d image.
@@ -235,7 +243,8 @@ def _get_clusters(frame_shape, ndim, nb_spots, n_clusters, random_n_clusters,
     for i in range(nb_clusters):
 
         # get number of spots
-        nb_spots_cluster = _get_nb_spots(n_spots_cluster, True)
+        nb_spots_cluster = _get_nb_spots(n_spots_cluster,
+                                         random_n_spots_cluster)
         nb_spots_cluster = min(nb_spots_cluster, remaining_spots)
         remaining_spots -= nb_spots_cluster
 

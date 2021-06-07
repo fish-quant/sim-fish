@@ -1,6 +1,6 @@
 #!/bin/bash
 
-echo 'Running simulate_spots.sh...'
+echo 'Running simulate_spots_subpixel.sh...'
 
 # directories
 output_directory='/Users/arthur/output/2021_simulations'
@@ -8,22 +8,22 @@ output_directory='/Users/arthur/output/2021_simulations'
 # python script
 script='/Users/arthur/sim-fish/scripts/python/simulate_spots.py'
 
-# ### Spots 0.01 ###
+# ### Subpixel 0.01 ###
 
 # parameters
-experiment="spots_01"
+experiment="subpixel_01"
 n_images=100
 image_z=10
-image_y=256
-image_x=256
-subpixel_factors_z=10
-subpixel_factors_y=10
-subpixel_factors_x=10
+image_y=20
+image_x=20
+subpixel_factors_z=20
+subpixel_factors_y=20
+subpixel_factors_x=20
 voxel_size_z=100
 voxel_size_yx=100
-n_spots_min=50
-n_spots_max=300
-random_n_spots=1
+n_spots_min=3
+n_spots_max=15
+random_n_spots=0
 n_clusters=0
 random_n_clusters=0
 n_spots_cluster=0
@@ -47,10 +47,10 @@ python "$script" "$output_directory" "$experiment" "$n_images" \
         "$amplitude" "$random_amplitude" \
         "$noise_level" "$random_noise"
 
-# ### Spots 0.10 ###
+# ### Subpixel 0.10 ###
 
 # parameters
-experiment="spots_10"
+experiment="subpixel_10"
 random_amplitude=0.10
 random_noise=0.10
 
@@ -65,10 +65,10 @@ python "$script" "$output_directory" "$experiment" "$n_images" \
         "$amplitude" "$random_amplitude" \
         "$noise_level" "$random_noise"
 
-# ### Spots 0.30 ###
+# ### Subpixel 0.30 ###
 
 # parameters
-experiment="spots_30"
+experiment="subpixel_30"
 random_amplitude=0.30
 random_noise=0.30
 
