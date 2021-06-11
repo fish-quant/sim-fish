@@ -12,12 +12,13 @@ import bigfish.stack as stack
 # TODO add a pattern with different densities per area
 
 
-def simulate_ground_truth(n_spots=30, random_n_spots=False, n_clusters=0,
-                          random_n_clusters=False, n_spots_cluster=0,
-                          random_n_spots_cluster=False, frame_shape=(128, 128),
-                          voxel_size_z=None, voxel_size_yx=100, sigma_z=None,
-                          sigma_yx=150, random_sigma=0.05, amplitude=5000,
-                          random_amplitude=0.05):
+def simulate_ground_truth(n_spots=30, random_n_spots=False,
+                          n_clusters=0, random_n_clusters=False,
+                          n_spots_cluster=0, random_n_spots_cluster=False,
+                          centered_cluster=False, frame_shape=(128, 128),
+                          voxel_size_z=None, voxel_size_yx=100,
+                          sigma_z=None, sigma_yx=150, random_sigma=0.05,
+                          amplitude=5000, random_amplitude=0.05):
     """ Simulate ground truth information about the simulated spots like their
     coordinates, standard deviations and amplitude.
 
@@ -38,6 +39,8 @@ def simulate_ground_truth(n_spots=30, random_n_spots=False, n_clusters=0,
     random_n_spots_cluster : bool
         Make the number of spots follow a Poisson distribution with
         expectation n_spots_cluster, instead of a constant predefined value.
+    centered_cluster : bool
+        Center the simulated cluster. Only used one cluster is simulated.
     frame_shape : Tuple[int or float] or List[int of float]
         Shape (z, y, x) or (y, x) of the image to simulate.
     voxel_size_z : int or float or None
@@ -78,6 +81,7 @@ def simulate_ground_truth(n_spots=30, random_n_spots=False, n_clusters=0,
                           random_n_clusters=bool,
                           n_spots_cluster=int,
                           random_n_spots_cluster=bool,
+                          centered_cluster=bool,
                           frame_shape=(tuple, list),
                           voxel_size_z=(int, float, type(None)),
                           voxel_size_yx=(int, float),
@@ -107,7 +111,7 @@ def simulate_ground_truth(n_spots=30, random_n_spots=False, n_clusters=0,
      remaining_spots) = _get_clusters(
         frame_shape, ndim, nb_spots, n_clusters, random_n_clusters,
         n_spots_cluster, random_n_spots_cluster, voxel_size_z, voxel_size_yx,
-        sigma_z, sigma_yx)
+        sigma_z, sigma_yx, centered_cluster)
 
     # simulate positions
     (positions_z_spots, positions_y_spots,
@@ -169,7 +173,7 @@ def _get_nb_spots(n, random_n):
 
 def _get_clusters(frame_shape, ndim, nb_spots, n_clusters, random_n_clusters,
                   n_spots_cluster, random_n_spots_cluster, voxel_size_z,
-                  voxel_size_yx, sigma_z, sigma_yx):
+                  voxel_size_yx, sigma_z, sigma_yx, centered=False):
     """Generate number of clusters and coordinates for clustered spots.
 
     Parameters
@@ -200,6 +204,8 @@ def _get_clusters(frame_shape, ndim, nb_spots, n_clusters, random_n_clusters,
         None, we consider a 2-d image.
     sigma_yx : int or float
         Standard deviation of the gaussian along the yx axis, in nanometer.
+    centered : bool
+        Center the simulated cluster. Only used one cluster is simulated.
 
     Returns
     -------
@@ -216,21 +222,34 @@ def _get_clusters(frame_shape, ndim, nb_spots, n_clusters, random_n_clusters,
     # generate number of clusters to simulate
     nb_clusters = _get_nb_spots(n_clusters, random_n_clusters)
 
+    if nb_clusters != 1:
+        centered = False
+
     if nb_clusters == 0:
         positions_z = np.array([], dtype=np.int64).reshape((0,))
         positions_y = np.array([], dtype=np.int64).reshape((0,))
         positions_x = np.array([], dtype=np.int64).reshape((0,))
         return positions_z, positions_y, positions_x, nb_spots
 
-    # get cluster center
-    center_cluster_z = None
-    if ndim == 3:
-        center_cluster_z = np.random.uniform(0, frame_shape[0],
+    # get cluster centers
+    if centered:
+        center_cluster_z = None
+        if ndim == 3:
+            center_cluster_z = np.array(frame_shape[0] / 2, dtype=np.int64)
+            center_cluster_z = np.reshape(center_cluster_z, -1)
+        center_cluster_y = np.array(frame_shape[ndim - 2] / 2, dtype=np.int64)
+        center_cluster_y = np.reshape(center_cluster_y, -1)
+        center_cluster_x = np.array(frame_shape[ndim - 1] / 2, dtype=np.int64)
+        center_cluster_x = np.reshape(center_cluster_x, -1)
+    else:
+        center_cluster_z = None
+        if ndim == 3:
+            center_cluster_z = np.random.uniform(0, frame_shape[0],
+                                                 size=nb_clusters)
+        center_cluster_y = np.random.uniform(0, frame_shape[ndim - 2],
                                              size=nb_clusters)
-    center_cluster_y = np.random.uniform(0, frame_shape[ndim - 2],
-                                         size=nb_clusters)
-    center_cluster_x = np.random.uniform(0, frame_shape[ndim - 1],
-                                         size=nb_clusters)
+        center_cluster_x = np.random.uniform(0, frame_shape[ndim - 1],
+                                             size=nb_clusters)
 
     # get spots coordinates per cluster
     remaining_spots = nb_spots

@@ -3,7 +3,7 @@
 # License: BSD 3 clause
 
 """
-Script to simulate spots.
+Script to simulate images with different number of spots.
 """
 
 import os
@@ -84,10 +84,16 @@ if __name__ == "__main__":
                         help="Voxel size along the yx axis (in nanometer).",
                         type=int,
                         default=100)
-    parser.add_argument("n_spots",
-                        help="Number of spots to simulate per image.",
+    parser.add_argument("n_spots_min",
+                        help="Number of spots to simulate per image "
+                             "(lower bound).",
                         type=int,
-                        default=100)
+                        default=50)
+    parser.add_argument("n_spots_max",
+                        help="Number of spots to simulate per image "
+                             "(upper bound).",
+                        type=int,
+                        default=300)
     parser.add_argument("random_n_spots",
                         help="Randomly sample number of spots to simulate.",
                         type=int,
@@ -100,16 +106,10 @@ if __name__ == "__main__":
                         help="Randomly sample number of clusters to simulate.",
                         type=int,
                         default=1)
-    parser.add_argument("n_spots_cluster_min",
-                        help="Number of spots to simulate per cluster "
-                             "(lower bound).",
+    parser.add_argument("n_spots_cluster",
+                        help="Number of spots to simulate per cluster.",
                         type=int,
-                        default=3)
-    parser.add_argument("n_spots_cluster_max",
-                        help="Number of spots to simulate per cluster "
-                             "(upper bound).",
-                        type=int,
-                        default=20)
+                        default=10)
     parser.add_argument("random_n_spots_cluster",
                         help="Random number of spots to simulate per cluster.",
                         type=int,
@@ -131,7 +131,7 @@ if __name__ == "__main__":
     parser.add_argument("amplitude",
                         help="Average maximum pixel intensity of the spots.",
                         type=int,
-                        default=5000)
+                        default=1000)
     parser.add_argument("random_amplitude",
                         help="Random margin over the amplitude parameter..",
                         type=float,
@@ -168,13 +168,13 @@ if __name__ == "__main__":
     image_dtype = np.uint16
     voxel_size_z = args.voxel_size_z
     voxel_size_yx = args.voxel_size_yx
-    n_spots = args.n_spots
+    n_spots_min = args.n_spots_min
+    n_spots_max = args.n_spots_max
+    n_spots = (n_spots_min, n_spots_max)
     random_n_spots = bool(args.random_n_spots)
     n_clusters = args.n_clusters
     random_n_clusters = bool(args.random_n_clusters)
-    n_spots_cluster_min = args.n_spots_cluster_min
-    n_spots_cluster_max = args.n_spots_cluster_max
-    n_spots_cluster = (n_spots_cluster_min, n_spots_cluster_max)
+    n_spots_cluster = args.n_spots_cluster
     random_n_spots_cluster = bool(args.random_n_spots_cluster)
     sigma_z = args.sigma_z
     sigma_yx = args.sigma_yx
@@ -211,12 +211,11 @@ if __name__ == "__main__":
     print("Image dtype: {0}".format(image_dtype))
     print("Size voxel z: {0}".format(voxel_size_z))
     print("Size voxel yx: {0}".format(voxel_size_yx))
-    print("Number of spots: {0}".format(n_spots))
+    print("Number of spots (min, max): {0}".format(n_spots))
     print("Random number of spots: {0}".format(random_n_spots))
     print("Number of clusters: {0}".format(n_clusters))
     print("Random number of clusters: {0}".format(random_n_clusters))
-    print("Number of spots per cluster (min, max): {0}"
-          .format(n_spots_cluster))
+    print("Number of spots per cluster: {0}".format(n_spots_cluster))
     print("Random number of spots per cluster: {0}"
           .format(random_n_spots_cluster))
     print("Sigma z: {0}".format(sigma_z))
@@ -228,9 +227,8 @@ if __name__ == "__main__":
     print("Random noise: {0}".format(random_noise))
     print()
 
-    # define number of spots per cluster
-    l_n = np.linspace(n_spots_cluster[0], n_spots_cluster[1],
-                      num=n_images, dtype=np.int64)
+    # define number of spots
+    l_n = np.linspace(n_spots[0], n_spots[1], num=n_images, dtype=np.int64)
 
     def fct_to_process(i, n):
         # simulate images
@@ -240,12 +238,13 @@ if __name__ == "__main__":
             subpixel_factors=subpixel_factors,
             voxel_size_z=voxel_size_z,
             voxel_size_yx=voxel_size_yx,
-            n_spots=n_spots,
+            n_spots=n,
             random_n_spots=random_n_spots,
             n_clusters=n_clusters,
             random_n_clusters=random_n_clusters,
-            n_spots_cluster=n,
+            n_spots_cluster=n_spots_cluster,
             random_n_spots_cluster=random_n_spots_cluster,
+            centered_cluster=False,
             sigma_z=sigma_z,
             sigma_yx=sigma_yx,
             random_sigma=random_sigma,
@@ -254,14 +253,9 @@ if __name__ == "__main__":
             noise_level=noise_level,
             random_noise=random_noise)
 
-        # save image
+        # save image and ground truth
         path = os.path.join(path_directory_image, "image_{0}.tif".format(i))
         stack.save_image(image, path)
-
-        # complete ground truth and save it
-        new_column = np.array([n] * len(ground_truth))
-        new_column = new_column[:, np.newaxis]
-        ground_truth = np.hstack([ground_truth, new_column])
         path = os.path.join(path_directory_gt, "gt_{0}.csv".format(i))
         stack.save_data_to_csv(ground_truth, path)
 

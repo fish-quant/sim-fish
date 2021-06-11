@@ -18,13 +18,13 @@ from .spot_simulation import add_spots
 from .noise_simulation import add_white_noise
 
 
-def simulate_images(n_images,
-                    image_shape=(128, 128), image_dtype=np.uint16,
+def simulate_images(n_images, image_shape=(128, 128), image_dtype=np.uint16,
                     subpixel_factors=None,
                     voxel_size_z=None, voxel_size_yx=100,
                     n_spots=30, random_n_spots=False,
                     n_clusters=0, random_n_clusters=False,
                     n_spots_cluster=0, random_n_spots_cluster=False,
+                    centered_cluster=False,
                     sigma_z=None, sigma_yx=150, random_sigma=0,
                     amplitude=5000, random_amplitude=0.05,
                     noise_level=300, random_noise=0.05):
@@ -64,6 +64,8 @@ def simulate_images(n_images,
     random_n_spots_cluster : bool
         Make the number of spots follow a Poisson distribution with
         expectation n_spots_cluster, instead of a constant predefined value.
+    centered_cluster : bool
+        Center the simulated cluster. Only used one cluster is simulated.
     sigma_z : int, float or None
         Standard deviation of the gaussian along the z axis, in nanometer. If
         None, we consider a 2-d image.
@@ -111,6 +113,7 @@ def simulate_images(n_images,
                           random_n_clusters=bool,
                           n_spots_cluster=int,
                           random_n_spots_cluster=bool,
+                          centered_cluster=bool,
                           sigma_z=(int, float, type(None)),
                           sigma_yx=(int, float),
                           random_sigma=(int, float),
@@ -166,6 +169,7 @@ def simulate_images(n_images,
             random_n_clusters=random_n_clusters,
             n_spots_cluster=n_spots_cluster,
             random_n_spots_cluster=random_n_spots_cluster,
+            centered_cluster=centered_cluster,
             sigma_z=sigma_z,
             sigma_yx=sigma_yx,
             random_sigma=random_sigma,
@@ -181,9 +185,11 @@ def simulate_image(image_shape=(128, 128), image_dtype=np.uint16,
                    subpixel_factors=None,
                    voxel_size_z=None, voxel_size_yx=100,
                    n_spots=30, random_n_spots=False,
-                   n_clusters=0, random_n_clusters=False, n_spots_cluster=0,
-                   random_n_spots_cluster=False,  sigma_z=None, sigma_yx=150,
-                   random_sigma=0.05, amplitude=5000, random_amplitude=0.05,
+                   n_clusters=0, random_n_clusters=False,
+                   n_spots_cluster=0, random_n_spots_cluster=False,
+                   centered_cluster=False,
+                   sigma_z=None, sigma_yx=150, random_sigma=0.05,
+                   amplitude=5000, random_amplitude=0.05,
                    noise_level=300, random_noise=0.05):
     """Simulate ground truth coordinates and image of spots.
 
@@ -217,6 +223,8 @@ def simulate_image(image_shape=(128, 128), image_dtype=np.uint16,
     random_n_spots_cluster : bool
         Make the number of spots follow a Poisson distribution with
         expectation n_spots_cluster, instead of a constant predefined value.
+    centered_cluster : bool
+        Center the simulated cluster. Only used one cluster is simulated.
     sigma_z : int, float or None
         Standard deviation of the gaussian along the z axis, in nanometer. If
         None, we consider a 2-d image.
@@ -262,6 +270,7 @@ def simulate_image(image_shape=(128, 128), image_dtype=np.uint16,
                           random_n_clusters=bool,
                           n_spots_cluster=int,
                           random_n_spots_cluster=bool,
+                          centered_cluster=bool,
                           sigma_z=(int, float, type(None)),
                           sigma_yx=(int, float),
                           random_sigma=(int, float),
@@ -312,6 +321,7 @@ def simulate_image(image_shape=(128, 128), image_dtype=np.uint16,
         random_n_clusters=random_n_clusters,
         n_spots_cluster=n_spots_cluster,
         random_n_spots_cluster=random_n_spots_cluster,
+        centered_cluster=centered_cluster,
         frame_shape=image_shape,
         voxel_size_z=voxel_size_z,
         voxel_size_yx=voxel_size_yx,
