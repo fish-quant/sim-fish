@@ -8,7 +8,7 @@
 #SBATCH -t 0-100:00             # Time (DD-HH:MM)
 #SBATCH --mem 64000             # Memory per node in MB (0 allocates all the memory)
 #SBATCH --ntasks=1              # Number of processes to run (default is 1)
-#SBATCH --cpus-per-task=12      # CPU cores per process (default 1)
+#SBATCH --cpus-per-task=16      # CPU cores per process (default 1)
 #SBATCH -p cpu                  # Name of the partition to use
 
 echo 'Running simulate_spots.sh...'
