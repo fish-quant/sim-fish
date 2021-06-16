@@ -293,8 +293,8 @@ if __name__ == "__main__":
         return
 
     # parallelization
-    Parallel(n_jobs=-1)(delayed(fct_to_process)(i, int(n))
-                        for i, n in enumerate(l_n))
+    Parallel(n_jobs=4)(delayed(fct_to_process)(i, int(n))
+                       for i, n in enumerate(l_n))
 
     print()
     print("Script done!")

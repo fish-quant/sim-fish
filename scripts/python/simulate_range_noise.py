@@ -232,7 +232,7 @@ if __name__ == "__main__":
     # define noise variance (log scale)
     random_margin_min_ = np.log(random_margin[0]) / np.log(10)
     random_margin_max_ = np.log(random_margin[1]) / np.log(10)
-    l_n = np.logspace(random_margin_min_, random_margin_max_, num=50)
+    l_n = np.logspace(random_margin_min_, random_margin_max_, num=n_images)
 
     def fct_to_process(i, n):
         # simulate images
@@ -283,8 +283,8 @@ if __name__ == "__main__":
         return
 
     # parallelization
-    Parallel(n_jobs=-1)(delayed(fct_to_process)(i, n)
-                        for i, n in enumerate(l_n))
+    Parallel(n_jobs=4)(delayed(fct_to_process)(i, n)
+                       for i, n in enumerate(l_n))
 
     print()
     print("Script done!")

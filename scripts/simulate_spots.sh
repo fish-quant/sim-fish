@@ -1,25 +1,12 @@
 #!/bin/bash
 
-#SBATCH --export=ALL
-#SBATCH -J simfish
-#SBATCH --exclude=node28,node02
-#SBATCH -o /cbio/donnees/aimbert/logs/log-%A.log
-#SBATCH -e /cbio/donnees/aimbert/logs/log-%A.err
-#SBATCH -t 0-100:00             # Time (DD-HH:MM)
-#SBATCH --mem 32000             # Memory per node in MB (0 allocates all the memory)
-#SBATCH --ntasks=1              # Number of processes to run (default is 1)
-#SBATCH --cpus-per-task=4       # CPU cores per process (default 1)
-#SBATCH -p cpu                  # Name of the partition to use
-
 echo 'Running simulate_spots.sh...'
 
-echo "SLURM_JOBID: " $SLURM_JOBID
-
 # directories
-output_directory='/mnt/data3/aimbert/output/2021_simulations'
+output_directory='/Users/arthur/output/2021_simulations'
 
 # python script
-script='/cbio/donnees/aimbert/sim-fish/scripts/python/simulate_range_noise.py'
+script='/Users/arthur/sim-fish/scripts/python/simulate_range_noise.py'
 
 # ### Spots 0.05 - 0.4 ###
 
@@ -61,7 +48,7 @@ python "$script" "$output_directory" "$experiment" "$n_images" \
         "$noise_level" "$random_min" "$random_max"
 
 # python script
-script='/cbio/donnees/aimbert/sim-fish/scripts/python/simulate_range_spots.py'
+script='/Users/arthur/sim-fish/scripts/python/simulate_range_spots.py'
 
 # ### Spots 0.065 ###
 
