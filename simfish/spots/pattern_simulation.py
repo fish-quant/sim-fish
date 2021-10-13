@@ -327,6 +327,18 @@ def _get_clusters(frame_shape, ndim, nb_spots, n_clusters, random_n_clusters,
     positions_x = np.concatenate(positions_x).astype(np.int64)
 
     # filter out spots incorrectly simulated
+    mask_y = (positions_y >= 0) & (positions_y < frame_shape[ndim - 2])
+    mask_x = (positions_x >= 0) & (positions_x < frame_shape[ndim - 1])
+    if ndim == 3:
+        mask_z = (positions_z >= 0) & (positions_z < frame_shape[0])
+        mask = mask_z & mask_y & mask_x
+        positions_z = positions_z[mask]
+        positions_y = positions_y[mask]
+        positions_x = positions_x[mask]
+    else:
+        mask = mask_y & mask_x
+        positions_y = positions_y[mask]
+        positions_x = positions_x[mask]
     if probability_map is not None:
         if ndim == 3:
             mask = probability_map[positions_z, positions_y, positions_x]
@@ -337,19 +349,6 @@ def _get_clusters(frame_shape, ndim, nb_spots, n_clusters, random_n_clusters,
         else:
             mask = probability_map[positions_y, positions_x]
             mask = mask > 0.
-            positions_y = positions_y[mask]
-            positions_x = positions_x[mask]
-    else:
-        mask_y = (positions_y >= 0) & (positions_y < frame_shape[ndim - 2])
-        mask_x = (positions_x >= 0) & (positions_x < frame_shape[ndim - 1])
-        if ndim == 3:
-            mask_z = (positions_z >= 0) & (positions_z < frame_shape[0])
-            mask = mask_z & mask_y & mask_x
-            positions_z = positions_z[mask]
-            positions_y = positions_y[mask]
-            positions_x = positions_x[mask]
-        else:
-            mask = mask_y & mask_x
             positions_y = positions_y[mask]
             positions_x = positions_x[mask]
 
