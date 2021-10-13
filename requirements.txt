@@ -1,2 +1,2 @@
-bigfish == 0.5.0
+big-fish == 0.5.0
 joblib == 0.13.2
