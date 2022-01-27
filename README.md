@@ -1,10 +1,13 @@
 # Sim-FISH
 
-[![License](https://img.shields.io/badge/license-BSD%203--Clause-green)](https://github.com/fish-quant/big-fish/blob/master/LICENSE)
+[![PyPI version](https://badge.fury.io/py/sim-fish.svg)](https://badge.fury.io/py/sim-fish)
+[![Build Status](https://travis-ci.com/fish-quant/sim-fish.svg?branch=main)](https://travis-ci.com/fish-quant/sim-fish)
+[![Documentation Status](https://readthedocs.org/projects/sim-fish/badge/?version=latest)](https://sim-fish.readthedocs.io/en/latest/?badge=latest)
+[![codecov](https://codecov.io/gh/fish-quant/sim-fish/branch/main/graph/badge.svg)](https://codecov.io/gh/fish-quant/sim-fish)
+[![License](https://img.shields.io/badge/license-BSD%203--Clause-green)](https://github.com/fish-quant/big-fish/blob/main/LICENSE)
 [![Python 3.6](https://img.shields.io/badge/python-3.6-blue.svg)](https://www.python.org/downloads/release/python-360/)
 
 **Sim-FISH** is a python package to **simulate smFISH images**. The package allows the user simulate and localize spots, cells and nuclei. The ultimate goal is to provide toy images to **experiment, train and evaluate smFISH statistical analysis**.
-
 
 ## Installation
 
@@ -12,15 +15,8 @@
 
 Sim-FISH requires Python 3.6 or newer. Additionally, it has the following dependencies:
 
-- numpy (== 1.16.0)
-- scipy (== 1.4.1)
-- scikit-learn (== 0.20.2)
-- scikit-image (== 0.14.2)
-- matplotlib (== 3.0.2)
-- pandas (== 0.24.0)
-- mrc (== 0.1.5)
-
-Updated dependencies might break.
+- big-fish >= 0.6.0
+- joblib >= 0.13.2
 
 ### Virtual environment
 
@@ -33,9 +29,13 @@ source activate simfish_env
 
 We recommend two options to then install Sim-FISH in your virtual environment.
 
-#### Download the package from PyPi (not available yet)
+#### Download the package from PyPi
 
+Use the package manager [pip](https://pip.pypa.io/en/stable/) to install Sim-FISH. In a terminal run the command:
 
+```bash
+pip install sim-fish
+```
 
 #### Clone package from Github
 
@@ -49,7 +49,9 @@ pip install .
 
 ## Usage
 
+Sim-FISH provides a toolbox to simulate smFISH images. A complete [documentation](https://sim-fish.readthedocs.io/en/stable/) is available online. 
 
+This package is part of the [FISH-Quant](https://fish-quant.github.io/) framework.
 
 ## Support
 
@@ -60,19 +62,18 @@ If you have any question relative to the repository, please open an [issue](http
 Version 0.1.0:
 - I/O routines.
 - Random spot simulation in 2D and 3D.
+- Localized spot simulation in 2D and 3D. 
 - Clustered spot simulation in 2D and 3D.
-- Allow benchmark and valuation pipeline.
+- Add sphinx documentation.
 
 Version 0.Y.0:
-- Noise simulation.
-- Localized spot simulation in 2D. 
+- Improve background noise simulation.
 - Cell and nucleus simulation in 2D.
-- Localized spot simulation in 3D. 
 - Cell and nucleus simulation in 3D.
+- Allow benchmark and valuation pipeline.
 
 Version 1.0.0:
 - Complete code coverage.
-- Add sphinx documentation.
 
 ## Development
 
