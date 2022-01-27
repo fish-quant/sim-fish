@@ -89,7 +89,7 @@ def simulate_images(n_images, image_shape=(128, 128), image_dtype=np.uint16,
     -------
     _ : Tuple generator
         image : np.ndarray, np.uint
-            Simulated images with spots and shape (z, y, x) or (y, x).
+            Simulated image with spots and shape (z, y, x) or (y, x).
         ground_truth : np.ndarray
             Ground truth array with shape (nb_spots, 6) or (nb_spots, 4).
             - coordinate_z (optional)
@@ -247,7 +247,7 @@ def simulate_image(image_shape=(128, 128), image_dtype=np.uint16,
     Returns
     -------
     image : np.ndarray, np.uint
-        Simulated images with spots and shape (z, y, x) or (y, x).
+        Simulated image with spots and shape (z, y, x) or (y, x).
     ground_truth : np.ndarray
         Ground truth array with shape (nb_spots, 6) or (nb_spots, 4).
         - coordinate_z (optional)
