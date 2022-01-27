@@ -9,8 +9,6 @@ Functions to simulate spots patterns.
 import numpy as np
 import bigfish.stack as stack
 
-# TODO add a pattern with different densities per area
-
 
 def simulate_ground_truth(n_spots=30, random_n_spots=False,
                           n_clusters=0, random_n_clusters=False,
@@ -20,7 +18,7 @@ def simulate_ground_truth(n_spots=30, random_n_spots=False,
                           sigma_z=None, sigma_yx=150, random_sigma=0.05,
                           amplitude=5000, random_amplitude=0.05,
                           probability_map=None):
-    """ Simulate ground truth information about the simulated spots like their
+    """Simulate ground truth information about the simulated spots like their
     coordinates, standard deviations and amplitude.
 
     Parameters
@@ -78,25 +76,27 @@ def simulate_ground_truth(n_spots=30, random_n_spots=False,
 
     """
     # check parameters
-    stack.check_parameter(n_spots=int,
-                          random_n_spots=bool,
-                          n_clusters=int,
-                          random_n_clusters=bool,
-                          n_spots_cluster=int,
-                          random_n_spots_cluster=bool,
-                          centered_cluster=bool,
-                          frame_shape=(tuple, list),
-                          voxel_size_z=(int, float, type(None)),
-                          voxel_size_yx=(int, float),
-                          sigma_z=(int, float, type(None)),
-                          sigma_yx=(int, float),
-                          random_sigma=(int, float),
-                          amplitude=(int, float),
-                          random_amplitude=(int, float))
+    stack.check_parameter(
+        n_spots=int,
+        random_n_spots=bool,
+        n_clusters=int,
+        random_n_clusters=bool,
+        n_spots_cluster=int,
+        random_n_spots_cluster=bool,
+        centered_cluster=bool,
+        frame_shape=(tuple, list),
+        voxel_size_z=(int, float, type(None)),
+        voxel_size_yx=(int, float),
+        sigma_z=(int, float, type(None)),
+        sigma_yx=(int, float),
+        random_sigma=(int, float),
+        amplitude=(int, float),
+        random_amplitude=(int, float))
     if probability_map is not None:
-        stack.check_array(probability_map,
-                          ndim=[2, 3],
-                          dtype=[np.float32, np.float64])
+        stack.check_array(
+            probability_map,
+            ndim=[2, 3],
+            dtype=[np.float32, np.float64])
 
     # check dimensions
     ndim = len(frame_shape)
@@ -114,19 +114,32 @@ def simulate_ground_truth(n_spots=30, random_n_spots=False,
                          "'voxel_size_z' is missing.")
 
     # generate number of spots to simulate
-    nb_spots = _get_nb_spots(n_spots, random_n_spots)
+    nb_spots = _get_nb_spots(n=n_spots, random_n=random_n_spots)
 
     # generate clusters
     (positions_z_clusters, positions_y_clusters, positions_x_clusters,
      remaining_spots) = _get_clusters(
-        frame_shape, ndim, nb_spots, n_clusters, random_n_clusters,
-        n_spots_cluster, random_n_spots_cluster, voxel_size_z, voxel_size_yx,
-        sigma_z, sigma_yx, centered_cluster, probability_map)
+        frame_shape=frame_shape,
+        ndim=ndim,
+        nb_spots=nb_spots,
+        n_clusters=n_clusters,
+        random_n_clusters=random_n_clusters,
+        n_spots_cluster=n_spots_cluster,
+        random_n_spots_cluster=random_n_spots_cluster,
+        voxel_size_z=voxel_size_z,
+        voxel_size_yx=voxel_size_yx,
+        sigma_z=sigma_z,
+        sigma_yx=sigma_yx,
+        centered=centered_cluster,
+        probability_map=probability_map)
 
     # simulate positions
     (positions_z_spots, positions_y_spots,
      positions_x_spots) = _get_spots_coordinates(
-        frame_shape, ndim, remaining_spots, probability_map)
+        frame_shape=frame_shape,
+        ndim=ndim,
+        nb_spots=remaining_spots,
+        probability_map=probability_map)
 
     # merge coordinates
     if ndim == 3:
@@ -137,19 +150,30 @@ def simulate_ground_truth(n_spots=30, random_n_spots=False,
     positions_x = np.concatenate((positions_x_clusters, positions_x_spots))
 
     # generate sigma values
-    sigmas_z, sigmas_yx = _get_sigma(ndim, sigma_z, sigma_yx, random_sigma,
-                                     nb_spots)
+    sigmas_z, sigmas_yx = _get_sigma(
+        ndim=ndim,
+        sigma_z=sigma_z,
+        sigma_yx=sigma_yx,
+        random_sigma=random_sigma,
+        nb_spots=nb_spots)
 
     # generate amplitude values
-    amplitudes = _get_amplitude(amplitude, random_amplitude, nb_spots)
+    amplitudes = _get_amplitude(
+        amplitude=amplitude,
+        random_amplitude=random_amplitude,
+        nb_spots=nb_spots)
 
     # stack and format ground truth
     if ndim == 3:
-        ground_truth = np.stack((positions_z, positions_y, positions_x,
-                                 sigmas_z, sigmas_yx, amplitudes)).T
+        ground_truth = np.stack((
+            positions_z, positions_y, positions_x,
+            sigmas_z, sigmas_yx,
+            amplitudes)).T
     else:
-        ground_truth = np.stack((positions_y, positions_x,
-                                 sigmas_yx, amplitudes)).T
+        ground_truth = np.stack((
+            positions_y, positions_x,
+            sigmas_yx,
+            amplitudes)).T
     ground_truth = ground_truth.astype(np.float64)
 
     return ground_truth
@@ -233,7 +257,7 @@ def _get_clusters(frame_shape, ndim, nb_spots, n_clusters, random_n_clusters,
 
     """
     # generate number of clusters to simulate
-    nb_clusters = _get_nb_spots(n_clusters, random_n_clusters)
+    nb_clusters = _get_nb_spots(n=n_clusters, random_n=random_n_clusters)
 
     # no cluster to simulate
     if nb_clusters == 0:
@@ -267,12 +291,12 @@ def _get_clusters(frame_shape, ndim, nb_spots, n_clusters, random_n_clusters,
     else:
         center_cluster_z = None
         if ndim == 3:
-            center_cluster_z = np.random.uniform(0, frame_shape[0],
-                                                 size=nb_clusters)
-        center_cluster_y = np.random.uniform(0, frame_shape[ndim - 2],
-                                             size=nb_clusters)
-        center_cluster_x = np.random.uniform(0, frame_shape[ndim - 1],
-                                             size=nb_clusters)
+            center_cluster_z = np.random.uniform(
+                0, frame_shape[0], size=nb_clusters)
+        center_cluster_y = np.random.uniform(
+            0, frame_shape[ndim - 2], size=nb_clusters)
+        center_cluster_x = np.random.uniform(
+            0, frame_shape[ndim - 1], size=nb_clusters)
 
     # get spots coordinates per cluster
     remaining_spots = nb_spots
@@ -285,8 +309,8 @@ def _get_clusters(frame_shape, ndim, nb_spots, n_clusters, random_n_clusters,
     for i in range(nb_clusters):
 
         # get number of spots
-        nb_spots_cluster = _get_nb_spots(n_spots_cluster,
-                                         random_n_spots_cluster)
+        nb_spots_cluster = _get_nb_spots(
+            n=n_spots_cluster, random_n=random_n_spots_cluster)
         nb_spots_cluster = min(nb_spots_cluster, remaining_spots)
         remaining_spots -= nb_spots_cluster
 
@@ -298,10 +322,10 @@ def _get_clusters(frame_shape, ndim, nb_spots, n_clusters, random_n_clusters,
         spots_scale_yx = sigma_yx / voxel_size_yx
         scale_yx = spots_scale_yx * 0.2 * nb_spots_cluster
         if ndim == 3:
-            rho_z = np.abs(np.random.normal(loc=0.0, scale=scale_z,
-                                            size=nb_spots_cluster))
-            rho_yx = np.abs(np.random.normal(loc=0.0, scale=scale_yx,
-                                             size=nb_spots_cluster))
+            rho_z = np.abs(np.random.normal(
+                loc=0.0, scale=scale_z, size=nb_spots_cluster))
+            rho_yx = np.abs(np.random.normal(
+                loc=0.0, scale=scale_yx, size=nb_spots_cluster))
             theta = np.random.uniform(0, np.pi, nb_spots_cluster)
             phi = np.random.uniform(0, 2 * np.pi, nb_spots_cluster)
             z = center_cluster_z[i] + rho_z * np.cos(theta)
@@ -312,8 +336,9 @@ def _get_clusters(frame_shape, ndim, nb_spots, n_clusters, random_n_clusters,
             positions_x.append(x)
 
         else:
-            rho_yx = np.random.normal(loc=0.0, scale=scale_yx,
-                                      size=nb_spots_cluster)
+            # TODO check if np.abs() missing?
+            rho_yx = np.random.normal(
+                loc=0.0, scale=scale_yx, size=nb_spots_cluster)
             phi = np.random.uniform(-np.pi, np.pi, nb_spots_cluster)
             y = center_cluster_y[i] + rho_yx * np.sin(phi)
             positions_y.append(y)
@@ -384,7 +409,8 @@ def _get_spots_coordinates(frame_shape, ndim, nb_spots, probability_map=None):
     """
     # simulate positions from a probability map
     if probability_map is not None:
-        sample = _sample_coordinates(nb_spots, probability_map)
+        sample = _sample_coordinates(
+            n=nb_spots, probability_map=probability_map)
         positions_z = None
         if ndim == 3:
             positions_z = sample[:, 0]
@@ -497,7 +523,7 @@ def _sample_coordinates(n, probability_map):
     ----------
     n : int
         Number of coordinates to sample.
-    probability_map : np.ndarray, np.float32 or None
+    probability_map : np.ndarray, np.float32
         Array of probability, with shape (z, y, x) or (y, x). Sum to one.
 
     Returns
@@ -537,8 +563,8 @@ def _sample_coordinates(n, probability_map):
     probability_map = probability_map.ravel()
 
     # sample coordinates
-    index_sample = np.random.choice(index_coord, size=n, replace=False,
-                                    p=probability_map)
+    index_sample = np.random.choice(
+        index_coord, size=n, replace=False, p=probability_map)
     sample = coord[index_sample]
 
     return sample

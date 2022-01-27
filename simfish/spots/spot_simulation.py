@@ -45,14 +45,11 @@ def add_spots(image, ground_truth, voxel_size_z=None, voxel_size_yx=100,
 
     """
     # check parameters
-    stack.check_array(image,
-                      ndim=[2, 3],
-                      dtype=[np.uint8, np.uint16])
-    stack.check_array(ground_truth,
-                      ndim=2,
-                      dtype=np.float64)
-    stack.check_parameter(voxel_size_z=(int, float, type(None)),
-                          voxel_size_yx=(int, float))
+    stack.check_array(image, ndim=[2, 3], dtype=[np.uint8, np.uint16])
+    stack.check_array(ground_truth, ndim=2, dtype=np.float64)
+    stack.check_parameter(
+        voxel_size_z=(int, float, type(None)),
+        voxel_size_yx=(int, float))
 
     # check number of dimensions
     ndim = image.ndim
@@ -69,19 +66,19 @@ def add_spots(image, ground_truth, voxel_size_z=None, voxel_size_yx=100,
     # simulate and add 3-d spots...
     if image.ndim == 3:
         image_with_spots = _add_spot_3d(
-            image,
-            ground_truth,
-            voxel_size_z,
-            voxel_size_yx,
-            precomputed_gaussian)
+            image=image,
+            ground_truth=ground_truth,
+            voxel_size_z=voxel_size_z,
+            voxel_size_yx=voxel_size_yx,
+            precomputed_gaussian=precomputed_gaussian)
 
     # ... or 2-d spots
     else:
         image_with_spots = _add_spot_2d(
-            image,
-            ground_truth,
-            voxel_size_yx,
-            precomputed_gaussian)
+            image=image,
+            ground_truth=ground_truth,
+            voxel_size_yx=voxel_size_yx,
+            precomputed_gaussian=precomputed_gaussian)
 
     return image_with_spots
 
@@ -123,26 +120,30 @@ def _add_spot_3d(image, ground_truth, voxel_size_z, voxel_size_yx,
     # compute reference spot shape
     max_sigma_z = max(ground_truth[:, 3])
     max_sigma_yx = max(ground_truth[:, 4])
-    radius_z, radius_yx, _ = stack.get_radius(
-        voxel_size_z=voxel_size_z, voxel_size_yx=voxel_size_yx,
-        psf_z=max_sigma_z, psf_yx=max_sigma_yx)
-    radius_z = np.ceil(radius_z).astype(np.int64)
+    radius_pixel = detection.get_object_radius_pixel(
+        voxel_size_nm=(voxel_size_z, voxel_size_yx, voxel_size_yx),
+        object_radius_nm=(max_sigma_z, max_sigma_yx, max_sigma_yx),
+        ndim=3)
+    radius = [np.sqrt(3) * r for r in radius_pixel]
+    radius_z = np.ceil(radius[0]).astype(np.int64)
     z_shape = radius_z * 2 + 1
-    radius_yx = np.ceil(radius_yx).astype(np.int64)
+    radius_yx = np.ceil(radius[-1]).astype(np.int64)
     yx_shape = radius_yx * 2 + 1
 
     # build a grid to represent a spot image
     image_spot = np.zeros((z_shape, yx_shape, yx_shape), dtype=np.uint8)
     grid = detection.initialize_grid(
         image_spot=image_spot,
-        voxel_size_z=voxel_size_z,
-        voxel_size_yx=voxel_size_yx,
+        voxel_size=(voxel_size_z, voxel_size_yx, voxel_size_yx),
         return_centroid=False)
 
     # pad image
-    image_padded = np.pad(image, ((radius_z, radius_z),
-                                  (radius_yx, radius_yx),
-                                  (radius_yx, radius_yx)), mode="constant")
+    image_padded = np.pad(
+        image,
+        pad_width=((radius_z, radius_z),
+                   (radius_yx, radius_yx),
+                   (radius_yx, radius_yx)),
+        mode="constant")
 
     # loop over every spot
     for (coord_z, coord_y, coord_x, sigma_z, sigma_yx, amp) in ground_truth:
@@ -162,8 +163,8 @@ def _add_spot_3d(image, ground_truth, voxel_size_z, voxel_size_yx,
             sigma_yx=sigma_yx,
             voxel_size_z=voxel_size_z,
             voxel_size_yx=voxel_size_yx,
-            psf_amplitude=amp,
-            psf_background=0,
+            amplitude=amp,
+            background=0,
             precomputed=precomputed_gaussian)
         simulated_spot = np.reshape(simulated_spot, image_spot.shape)
 
@@ -232,8 +233,7 @@ def _add_spot_3d_bis(image, ground_truth, voxel_size_z, voxel_size_yx,
     # build a grid to represent this image
     grid = detection.initialize_grid(
         image_spot=image,
-        voxel_size_z=voxel_size_z,
-        voxel_size_yx=voxel_size_yx,
+        voxel_size=(voxel_size_z, voxel_size_yx, voxel_size_yx),
         return_centroid=False)
 
     # add spots
@@ -250,13 +250,13 @@ def _add_spot_3d_bis(image, ground_truth, voxel_size_z, voxel_size_yx,
             sigma_yx=sigma_yx,
             voxel_size_z=voxel_size_z,
             voxel_size_yx=voxel_size_yx,
-            psf_amplitude=amp,
-            psf_background=0,
+            amplitude=amp,
+            background=0,
             precomputed=precomputed_gaussian)
 
     # sample Poisson distribution from gaussian values
-    image_raw = np.random.poisson(lam=expectations_raw,
-                                  size=expectations_raw.size)
+    image_raw = np.random.poisson(
+        lam=expectations_raw, size=expectations_raw.size)
 
     # reshape and cast image
     new_image = np.reshape(image_raw, image.shape)
@@ -297,23 +297,27 @@ def _add_spot_2d(image, ground_truth, voxel_size_yx, precomputed_gaussian):
 
     # compute reference spot shape
     max_sigma = max(ground_truth[:, 2])
-    radius_yx, _ = stack.get_radius(
-        voxel_size_z=None, voxel_size_yx=voxel_size_yx,
-        psf_z=None, psf_yx=max_sigma)
-    radius_yx = np.ceil(radius_yx).astype(np.int64)
+    radius_pixel = detection.get_object_radius_pixel(
+        voxel_size_nm=(voxel_size_yx, voxel_size_yx),
+        object_radius_nm=(max_sigma, max_sigma),
+        ndim=2)
+    radius = [np.sqrt(3) * r for r in radius_pixel]
+    radius_yx = np.ceil(radius[-1]).astype(np.int64)
     yx_shape = radius_yx * 2 + 1
 
     # build a grid to represent a spot image
     image_spot = np.zeros((yx_shape, yx_shape), dtype=np.uint8)
     grid = detection.initialize_grid(
         image_spot=image_spot,
-        voxel_size_z=None,
-        voxel_size_yx=voxel_size_yx,
+        voxel_size=(voxel_size_yx, voxel_size_yx),
         return_centroid=False)
 
     # pad image
-    image_padded = np.pad(image, ((radius_yx, radius_yx),
-                                  (radius_yx, radius_yx)), mode="constant")
+    image_padded = np.pad(
+        image,
+        pad_width=((radius_yx, radius_yx),
+                   (radius_yx, radius_yx)),
+        mode="constant")
 
     # loop over every spot
     for (coord_y, coord_x, sigma_yx, amp) in ground_truth:
@@ -329,8 +333,8 @@ def _add_spot_2d(image, ground_truth, voxel_size_yx, precomputed_gaussian):
             mu_x=position_spot[1],
             sigma_yx=sigma_yx,
             voxel_size_yx=voxel_size_yx,
-            psf_amplitude=amp,
-            psf_background=0,
+            amplitude=amp,
+            background=0,
             precomputed=precomputed_gaussian)
         simulated_spot = np.reshape(simulated_spot, image_spot.shape)
 

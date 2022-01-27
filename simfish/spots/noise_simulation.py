@@ -9,8 +9,8 @@ Functions to simulate background noise.
 import numpy as np
 import bigfish.stack as stack
 
-# TODO add illumination bias
 
+# TODO add illumination bias
 
 def add_white_noise(image, noise_level, random_noise=0.05):
     """Generate and add white noise to an image.
@@ -32,11 +32,10 @@ def add_white_noise(image, noise_level, random_noise=0.05):
 
     """
     # check parameters
-    stack.check_array(image,
-                      ndim=[2, 3],
-                      dtype=[np.uint8, np.uint16])
-    stack.check_parameter(noise_level=(int, float),
-                          random_noise=(int, float))
+    stack.check_array(image, ndim=[2, 3], dtype=[np.uint8, np.uint16])
+    stack.check_parameter(
+        noise_level=(int, float),
+        random_noise=(int, float))
 
     # compute scale
     scale = noise_level * random_noise

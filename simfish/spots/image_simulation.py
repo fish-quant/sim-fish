@@ -10,12 +10,11 @@ import numpy as np
 import bigfish.stack as stack
 import bigfish.detection as detection
 
-from skimage.transform import downscale_local_mean
-
-
 from .pattern_simulation import simulate_ground_truth
 from .spot_simulation import add_spots
 from .noise_simulation import add_white_noise
+
+from skimage.transform import downscale_local_mean
 
 
 def simulate_images(n_images, image_shape=(128, 128), image_dtype=np.uint16,
@@ -101,26 +100,27 @@ def simulate_images(n_images, image_shape=(128, 128), image_dtype=np.uint16,
 
     """
     # check parameters
-    stack.check_parameter(n_images=int,
-                          image_shape=(tuple, list),
-                          image_dtype=type,
-                          subpixel_factors=(tuple, type(None)),
-                          voxel_size_z=(int, float, type(None)),
-                          voxel_size_yx=(int, float),
-                          n_spots=(int, tuple),
-                          random_n_spots=bool,
-                          n_clusters=int,
-                          random_n_clusters=bool,
-                          n_spots_cluster=int,
-                          random_n_spots_cluster=bool,
-                          centered_cluster=bool,
-                          sigma_z=(int, float, type(None)),
-                          sigma_yx=(int, float),
-                          random_sigma=(int, float),
-                          amplitude=(int, float),
-                          random_amplitude=(int, float),
-                          noise_level=(int, float),
-                          random_noise=(int, float))
+    stack.check_parameter(
+        n_images=int,
+        image_shape=(tuple, list),
+        image_dtype=type,
+        subpixel_factors=(tuple, type(None)),
+        voxel_size_z=(int, float, type(None)),
+        voxel_size_yx=(int, float),
+        n_spots=(int, tuple),
+        random_n_spots=bool,
+        n_clusters=int,
+        random_n_clusters=bool,
+        n_spots_cluster=int,
+        random_n_spots_cluster=bool,
+        centered_cluster=bool,
+        sigma_z=(int, float, type(None)),
+        sigma_yx=(int, float),
+        random_sigma=(int, float),
+        amplitude=(int, float),
+        random_amplitude=(int, float),
+        noise_level=(int, float),
+        random_noise=(int, float))
 
     # check number of images
     if n_images < 0:
@@ -259,25 +259,26 @@ def simulate_image(image_shape=(128, 128), image_dtype=np.uint16,
 
     """
     # check parameters
-    stack.check_parameter(image_shape=(tuple, list),
-                          image_dtype=type,
-                          subpixel_factors=(tuple, type(None)),
-                          voxel_size_z=(int, float, type(None)),
-                          voxel_size_yx=(int, float),
-                          n_spots=int,
-                          random_n_spots=bool,
-                          n_clusters=int,
-                          random_n_clusters=bool,
-                          n_spots_cluster=int,
-                          random_n_spots_cluster=bool,
-                          centered_cluster=bool,
-                          sigma_z=(int, float, type(None)),
-                          sigma_yx=(int, float),
-                          random_sigma=(int, float),
-                          amplitude=(int, float),
-                          random_amplitude=(int, float),
-                          noise_level=(int, float),
-                          random_noise=(int, float))
+    stack.check_parameter(
+        image_shape=(tuple, list),
+        image_dtype=type,
+        subpixel_factors=(tuple, type(None)),
+        voxel_size_z=(int, float, type(None)),
+        voxel_size_yx=(int, float),
+        n_spots=int,
+        random_n_spots=bool,
+        n_clusters=int,
+        random_n_clusters=bool,
+        n_spots_cluster=int,
+        random_n_spots_cluster=bool,
+        centered_cluster=bool,
+        sigma_z=(int, float, type(None)),
+        sigma_yx=(int, float),
+        random_sigma=(int, float),
+        amplitude=(int, float),
+        random_amplitude=(int, float),
+        noise_level=(int, float),
+        random_noise=(int, float))
 
     # check image dtype
     if image_dtype not in [np.uint8, np.uint16]:
@@ -364,6 +365,19 @@ def simulate_image(image_shape=(128, 128), image_dtype=np.uint16,
 
 def _scale_subpixel(image_shape, subpixel_factors, voxel_size_z,
                     voxel_size_yx):
+    """
+    # TODO complete docstring
+    Parameters
+    ----------
+    image_shape
+    subpixel_factors
+    voxel_size_z
+    voxel_size_yx
+
+    Returns
+    -------
+
+    """
     # get number of dimensions
     ndim = len(image_shape)
 
@@ -380,35 +394,58 @@ def _scale_subpixel(image_shape, subpixel_factors, voxel_size_z,
 
 def _precompute_gaussian(ground_truth, random_sigma, voxel_size_z,
                          voxel_size_yx, sigma_z, sigma_yx):
+    """
+    # TODO complete docstring
+    Parameters
+    ----------
+    ground_truth
+    random_sigma
+    voxel_size_z
+    voxel_size_yx
+    sigma_z
+    sigma_yx
+
+    Returns
+    -------
+
+    """
     # precompute gaussian spots if possible
     if random_sigma == 0:
 
         if ground_truth.shape[1] == 6:
             max_sigma_z = max(ground_truth[:, 3])
             max_sigma_yx = max(ground_truth[:, 4])
-            radius_z, radius_yx, _ = stack.get_radius(
-                voxel_size_z=voxel_size_z, voxel_size_yx=voxel_size_yx,
-                psf_z=max_sigma_z, psf_yx=max_sigma_yx)
-            radius_z = np.ceil(radius_z).astype(np.int64)
+            radius_pixel = detection.get_object_radius_pixel(
+                voxel_size_nm=(voxel_size_z, voxel_size_yx, voxel_size_yx),
+                object_radius_nm=(max_sigma_z, max_sigma_yx, max_sigma_yx),
+                ndim=3)
+            radius = [np.sqrt(3) * r for r in radius_pixel]
+            radius_z = np.ceil(radius[0]).astype(np.int64)
             z_shape = radius_z * 2 + 1
-            radius_yx = np.ceil(radius_yx).astype(np.int64)
+            radius_yx = np.ceil(radius[-1]).astype(np.int64)
             yx_shape = radius_yx * 2 + 1
             max_size = int(max(z_shape, yx_shape) + 1)
             precomputed_erf = detection.precompute_erf(
-                voxel_size_z=voxel_size_z, voxel_size_yx=voxel_size_yx,
-                sigma_z=sigma_z, sigma_yx=sigma_yx, max_grid=max_size)
+                ndim=3,
+                voxel_size=(voxel_size_z, voxel_size_yx, voxel_size_yx),
+                sigma=(sigma_z, sigma_yx, sigma_yx),
+                max_grid=max_size)
 
         else:
             max_sigma_yx = max(ground_truth[:, 2])
-            radius_yx, _ = stack.get_radius(
-                voxel_size_z=None, voxel_size_yx=voxel_size_yx,
-                psf_z=None, psf_yx=max_sigma_yx)
-            radius_yx = np.ceil(radius_yx).astype(np.int64)
+            radius_pixel = detection.get_object_radius_pixel(
+                voxel_size_nm=(voxel_size_yx, voxel_size_yx),
+                object_radius_nm=(max_sigma_yx, max_sigma_yx),
+                ndim=2)
+            radius = [np.sqrt(3) * r for r in radius_pixel]
+            radius_yx = np.ceil(radius[-1]).astype(np.int64)
             yx_shape = radius_yx * 2 + 1
             max_size = int(yx_shape + 1)
             precomputed_erf = detection.precompute_erf(
-                voxel_size_z=None, voxel_size_yx=voxel_size_yx,
-                sigma_z=None, sigma_yx=sigma_yx, max_grid=max_size)
+                ndim=2,
+                voxel_size=(voxel_size_yx, voxel_size_yx),
+                sigma=(sigma_yx, sigma_yx),
+                max_grid=max_size)
 
     else:
         precomputed_erf = None
@@ -451,9 +488,7 @@ def downscale_image(image, ground_truth, factors):
 
     """
     # check parameters
-    stack.check_array(image,
-                      ndim=[2, 3],
-                      dtype=[np.uint8, np.uint16])
+    stack.check_array(image, ndim=[2, 3], dtype=[np.uint8, np.uint16])
     stack.check_parameter(factors=(tuple, list))
 
     # check dimensions
@@ -469,8 +504,8 @@ def downscale_image(image, ground_truth, factors):
         raise ValueError("'image' shape is not divisible by 'factors'.")
 
     # downscale image
-    image_downscaled = downscale_local_mean(image, factors=factors,
-                                            cval=image.min(), clip=True)
+    image_downscaled = downscale_local_mean(
+        image, factors=factors, cval=image.min(), clip=True)
 
     # adapt coordinates
     ground_truth[:, 0] /= factors[0]
