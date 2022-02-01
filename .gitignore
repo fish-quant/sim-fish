@@ -5,7 +5,7 @@
 .idea/
 
 # folders
-playground/
+notebooks/
 data/
 
 # ### General python stuff ###
