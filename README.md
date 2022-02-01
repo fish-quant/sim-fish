@@ -71,6 +71,7 @@ Version 0.Y.0:
 - Cell and nucleus simulation in 2D.
 - Cell and nucleus simulation in 3D.
 - Allow benchmark and valuation pipeline.
+- Add examples
 
 Version 1.0.0:
 - Complete code coverage.
