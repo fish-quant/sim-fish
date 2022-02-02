@@ -66,13 +66,15 @@ def simulate_ground_truth(n_spots=30, random_n_spots=False,
     Returns
     -------
     ground_truth : np.ndarray, np.float64
-        Ground truth array with shape (nb_spots, 6) or (nb_spots, 4).
-        - coordinate_z (optional)
-        - coordinate_y
-        - coordinate_x
-        - sigma_z (optional)
-        - sigma_yx
-        - amplitude
+        Ground truth array with shape (nb_spots, 6) or (nb_spots, 4). Columns
+        are:
+
+        * `coordinate_z` (optional)
+        * `coordinate_y`
+        * `coordinate_x`
+        * `sigma_z` (optional)
+        * `sigma_yx`
+        * `amplitude`
 
     """
     # check parameters

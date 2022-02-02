@@ -72,17 +72,27 @@ def simulate_images(n_images, image_shape=(128, 128), image_dtype=np.uint16,
         Standard deviation of the gaussian along the yx axis, in nanometer.
     random_sigma : int of float
         Sigmas follow a normal distribution around the provided sigma values.
-        The scale used is scale = sigma_axis * random_sigma
+        The scale used is:
+
+         .. math::
+            \\mbox{scale} = \\mbox{sigma} * \\mbox{random_sigma}
+
     amplitude : int or float
         Amplitude of the gaussians.
     random_amplitude : int or float
-        Margin allowed around the amplitude value. The formula used is
-        margin = parameter * random_level.
+        Margin allowed around the amplitude value. The formula used is:
+
+        .. math::
+            \\mbox{margin} = \\mbox{amplitude} * \\mbox{random_amplitude}
+
     noise_level : int or float
         Reference level of noise background to add in the image.
     random_noise : int or float
         Background noise follows a normal distribution around the provided
-        noise values. The scale used is scale = noise_level * random_noise
+        noise values. The scale used is:
+
+        .. math::
+            \\mbox{scale} = \\mbox{noise_level} * \\mbox{random_noise}
 
     Returns
     -------
@@ -90,13 +100,14 @@ def simulate_images(n_images, image_shape=(128, 128), image_dtype=np.uint16,
         image : np.ndarray, np.uint
             Simulated image with spots and shape (z, y, x) or (y, x).
         ground_truth : np.ndarray
-            Ground truth array with shape (nb_spots, 6) or (nb_spots, 4).
-            - coordinate_z (optional)
-            - coordinate_y
-            - coordinate_x
-            - sigma_z (optional)
-            - sigma_yx
-            - amplitude
+            Ground truth array with shape (nb_spots, 6) or (nb_spots, 4):
+
+            * `coordinate_z` (optional)
+            * `coordinate_y`
+            * `coordinate_x`
+            * `sigma_z` (optional)
+            * `sigma_yx`
+            * `amplitude`
 
     """
     # check parameters
@@ -232,30 +243,41 @@ def simulate_image(image_shape=(128, 128), image_dtype=np.uint16,
         Standard deviation of the gaussian along the yx axis, in nanometer.
     random_sigma : int of float
         Sigmas follow a normal distribution around the provided sigma values.
-        The scale used is scale = sigma_axis * random_sigma
+        The scale used is:
+
+        .. math::
+            \\mbox{scale} = \\mbox{sigma} * \\mbox{random_sigma}
+
     amplitude : int or float
         Amplitude of the gaussians.
     random_amplitude : int or float
-        Margin allowed around the amplitude value. The formula used is
-        margin = parameter * random_level.
+        Margin allowed around the amplitude value. The formula used is:
+
+        .. math::
+            \\mbox{margin} = \\mbox{amplitude} * \\mbox{random_amplitude}
+
     noise_level : int or float
         Reference level of noise background to add in the image.
     random_noise : int or float
         Background noise follows a normal distribution around the provided
-        noise values. The scale used is scale = noise_level * random_noise
+        noise values. The scale used is:
+
+         .. math::
+            \\mbox{scale} = \\mbox{noise_level} * \\mbox{random_noise}
 
     Returns
     -------
     image : np.ndarray, np.uint
         Simulated image with spots and shape (z, y, x) or (y, x).
     ground_truth : np.ndarray
-        Ground truth array with shape (nb_spots, 6) or (nb_spots, 4).
-        - coordinate_z (optional)
-        - coordinate_y
-        - coordinate_x
-        - sigma_z (optional)
-        - sigma_yx
-        - amplitude
+        Ground truth array with shape (nb_spots, 6) or (nb_spots, 4):
+
+        * `coordinate_z` (optional)
+        * `coordinate_y`
+        * `coordinate_x`
+        * `sigma_z` (optional)
+        * `sigma_yx`
+        * `amplitude`
 
     """
     # check parameters
@@ -461,13 +483,14 @@ def downscale_image(image, ground_truth, factors):
     image : np.ndarray, np.uint
         Image with shape (z, y, x) or (y, x).
     ground_truth : np.ndarray
-        Ground truth array with shape (nb_spots, 6) or (nb_spots, 4).
-        - coordinate_z (optional)
-        - coordinate_y
-        - coordinate_x
-        - sigma_z (optional)
-        - sigma_yx
-        - amplitude
+        Ground truth array with shape (nb_spots, 6) or (nb_spots, 4):
+
+        * `coordinate_z` (optional)
+        * `coordinate_y`
+        * `coordinate_x`
+        * `sigma_z` (optional)
+        * `sigma_yx`
+        * `amplitude`
     factors : Tuple[int] or List[int]
         Downscaling factors. One element per dimension.
 
@@ -477,14 +500,14 @@ def downscale_image(image, ground_truth, factors):
         Image with shape (z/factors, y/factors, x/factors) or
         (y/factors, x/factors).
     ground_truth : np.ndarray
-        Ground truth array with shape (nb_spots, 6) or (nb_spots, 4).
-        Coordinates are downscaled.
-        - coordinate_z (optional)
-        - coordinate_y
-        - coordinate_x
-        - sigma_z (optional)
-        - sigma_yx
-        - amplitude
+        Ground truth array with shape (nb_spots, 6) or (nb_spots, 4):
+
+        * `coordinate_z` downscaled (optional)
+        * `coordinate_y` downscaled
+        * `coordinate_x` downscaled
+        * `sigma_z` (optional)
+        * `sigma_yx`
+        * `amplitude`
 
     """
     # check parameters

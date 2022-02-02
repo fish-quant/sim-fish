@@ -22,13 +22,15 @@ def add_spots(image, ground_truth, voxel_size_z=None, voxel_size_yx=100,
     image : np.ndarray, np.uint
         Image with shape (z, y, x) or (y, x).
     ground_truth : np.ndarray, np.float64
-        Ground truth array with shape (nb_spots, 6) or (nb_spots, 4).
-        - coordinate_z (optional)
-        - coordinate_y
-        - coordinate_x
-        - sigma_z (optional)
-        - sigma_yx
-        - amplitude
+        Ground truth array with shape (nb_spots, 6) or (nb_spots, 4):
+
+        * `coordinate_z` (optional)
+        * `coordinate_y`
+        * `coordinate_x`
+        * `sigma_z` (optional)
+        * `sigma_yx`
+        * `amplitude`
+
     voxel_size_z : int or float or None
         Height of a voxel, along the z axis, in nanometer. If None, we
         consider a 2-d image.
