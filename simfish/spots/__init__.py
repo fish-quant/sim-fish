@@ -30,5 +30,4 @@ _images = [
     "simulate_images",
     "simulate_image"]
 
-
 __all__ = _patterns + _spots + _noise + _images
