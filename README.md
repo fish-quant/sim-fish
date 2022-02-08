@@ -5,7 +5,7 @@
 [![Documentation Status](https://readthedocs.org/projects/sim-fish/badge/?version=latest)](https://sim-fish.readthedocs.io/en/latest/?badge=latest)
 [![codecov](https://codecov.io/gh/fish-quant/sim-fish/branch/main/graph/badge.svg)](https://codecov.io/gh/fish-quant/sim-fish)
 [![License](https://img.shields.io/badge/license-BSD%203--Clause-green)](https://github.com/fish-quant/big-fish/blob/main/LICENSE)
-[![Python 3.6](https://img.shields.io/badge/python-3.6-blue.svg)](https://www.python.org/downloads/release/python-360/)
+[![Python version](https://img.shields.io/pypi/pyversions/sim-fish.svg)](https://pypi.python.org/pypi/sim-fish/)
 
 **Sim-FISH** is a python package to **simulate smFISH images**. The package allows the user simulate and localize spots, cells and nuclei. The ultimate goal is to provide toy images to **experiment, train and evaluate smFISH statistical analysis**.
 
@@ -15,8 +15,11 @@
 
 Sim-FISH requires Python 3.6 or newer. Additionally, it has the following dependencies:
 
-- big-fish >= 0.6.0
-- joblib >= 0.13.2
+- big-fish (>= 0.6.1)
+- joblib (>= 0.13.2)
+- numpy (>= 1.16.0)
+- scikit-image (>= 0.14.2)
+- matplotlib (>= 3.0.2)
 
 ### Virtual environment
 
