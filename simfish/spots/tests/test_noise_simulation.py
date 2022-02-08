@@ -32,4 +32,12 @@ def test_add_white_noise(dtype, ndim):
     # add nothing
     noised_image = spots.add_white_noise(
         image, noise_level=0, random_noise=0)
+    assert noised_image.dtype == image.dtype
+    assert noised_image.shape == image.shape
     assert_array_equal(noised_image, image)
+
+    # add constant noise
+    noised_image = spots.add_white_noise(
+        image, noise_level=5, random_noise=0)
+    assert noised_image.dtype == image.dtype
+    assert noised_image.shape == image.shape
