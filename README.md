@@ -2,9 +2,9 @@
 
 [![PyPI version](https://badge.fury.io/py/sim-fish.svg)](https://badge.fury.io/py/sim-fish)
 [![Build Status](https://travis-ci.com/fish-quant/sim-fish.svg?branch=main)](https://travis-ci.com/fish-quant/sim-fish)
-[![Documentation Status](https://readthedocs.org/projects/sim-fish/badge/?version=latest)](https://sim-fish.readthedocs.io/en/latest/?badge=latest)
+[![Documentation Status](https://readthedocs.org/projects/sim-fish/badge/?version=stable)](https://sim-fish.readthedocs.io/en/latest/?badge=stable)
 [![codecov](https://codecov.io/gh/fish-quant/sim-fish/branch/main/graph/badge.svg)](https://codecov.io/gh/fish-quant/sim-fish)
-[![License](https://img.shields.io/badge/license-BSD%203--Clause-green)](https://github.com/fish-quant/big-fish/blob/main/LICENSE)
+[![License](https://img.shields.io/badge/license-BSD%203--Clause-green)](https://github.com/fish-quant/sim-fish/blob/main/LICENSE)
 [![Python version](https://img.shields.io/pypi/pyversions/sim-fish.svg)](https://pypi.python.org/pypi/sim-fish/)
 
 **Sim-FISH** is a python package to **simulate smFISH images**. The package allows the user simulate and localize spots, cells and nuclei. The ultimate goal is to provide toy images to **experiment, train and evaluate smFISH statistical analysis**.
