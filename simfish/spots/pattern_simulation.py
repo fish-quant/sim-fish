@@ -10,57 +10,70 @@ import numpy as np
 import bigfish.stack as stack
 
 
-def simulate_ground_truth(n_spots=30, random_n_spots=False,
-                          n_clusters=0, random_n_clusters=False,
-                          n_spots_cluster=0, random_n_spots_cluster=False,
-                          centered_cluster=False, frame_shape=(128, 128),
-                          voxel_size_z=None, voxel_size_yx=100,
-                          sigma_z=None, sigma_yx=150, random_sigma=0.05,
-                          amplitude=5000, random_amplitude=0.05,
-                          probability_map=None):
+def simulate_ground_truth(
+        ndim,
+        n_spots,
+        random_n_spots=False,
+        n_clusters=0,
+        random_n_clusters=False,
+        n_spots_cluster=0,
+        random_n_spots_cluster=False,
+        centered_cluster=False,
+        frame_shape=(128, 128),
+        voxel_size=(100, 100),
+        sigma=(150,  150),
+        random_sigma=0.05,
+        amplitude=5000,
+        random_amplitude=0.05,
+        probability_map=None):
     """Simulate ground truth information about the simulated spots like their
     coordinates, standard deviations and amplitude.
 
     Parameters
     ----------
+    ndim : {2, 3}
+        Number of dimension to consider for the simulation.
     n_spots : int
         Expected number of spots to simulate.
-    random_n_spots : bool
+    random_n_spots : bool, default=False
         Make the number of spots follow a Poisson distribution with
-        expectation n_spots, instead of a constant predefined value.
+        expectation `n_spots`, instead of a constant predefined value.
     n_clusters : int
         Expected number of clusters to simulate.
-    random_n_clusters : bool
+    random_n_clusters : bool, default=False
         Make the number of clusters follow a Poisson distribution with
         expectation n_clusters, instead of a constant predefined value.
     n_spots_cluster : int
         Expected number of spots to simulate per cluster.
-    random_n_spots_cluster : bool
+    random_n_spots_cluster : bool, default=False
         Make the number of spots follow a Poisson distribution with
-        expectation n_spots_cluster, instead of a constant predefined value.
-    centered_cluster : bool
+        expectation `n_spots_cluster`, instead of a constant predefined value.
+    centered_cluster : bool, default=False
         Center the simulated cluster. Only used if one cluster is simulated.
-    frame_shape : Tuple[int or float] or List[int of float]
+    frame_shape : tuple or list, default=(128, 128)
         Shape (z, y, x) or (y, x) of the image to simulate.
-    voxel_size_z : int or float or None
-        Height of a voxel, along the z axis, in nanometer. If None, we
-        consider a 2-d image.
-    voxel_size_yx : int or float
-        Size of a voxel on the yx plan, in nanometer.
-    sigma_z : int, float or None
-        Standard deviation of the gaussian along the z axis, in nanometer. If
-        None, we consider a 2-d image.
-    sigma_yx : int or float
-        Standard deviation of the gaussian along the yx axis, in nanometer.
-    random_sigma : int of float
+    voxel_size : int or float or tuple or list, default=(100, 100)
+        Size of a voxel, in nanometer. One value per spatial dimension (zyx or
+        yx dimensions). If it's a scalar, the same value is applied to every
+        dimensions.
+    sigma : int or float or tuple or list, default=(150, 150)
+        Standard deviation of the spot, in nanometer. One value per spatial
+        dimension (zyx or yx dimensions). If it's a scalar, the same value is
+        applied to every dimensions.
+    random_sigma : int or float, default=0.05
         Sigmas follow a normal distribution around the provided sigma values.
-        The scale used is scale = sigma_axis * random_sigma
-    amplitude : int or float
-        Amplitude of the gaussians.
-    random_amplitude : int or float
-        Margin allowed around the amplitude value. The formula used is
-        margin = parameter * random_level.
-    probability_map : np.ndarray, np.float32 or None
+        The scale used is:
+
+        .. math::
+            \\mbox{scale} = \\mbox{sigma} * \\mbox{random_sigma}
+    amplitude : int or float, default=5000
+        Intensity of the spot.
+    random_amplitude : int or float, default=0.05
+        Margin allowed around the amplitude value. The formula used is:
+
+        .. math::
+            \\mbox{margin} = \\mbox{amplitude} * \\mbox{random_amplitude}
+    probability_map : np.ndarray, np.float32, optional
         Array of probability, with shape (z, y, x) or (y, x). Sum to one.
 
     Returns
@@ -69,16 +82,17 @@ def simulate_ground_truth(n_spots=30, random_n_spots=False,
         Ground truth array with shape (nb_spots, 6) or (nb_spots, 4). Columns
         are:
 
-        * `coordinate_z` (optional)
-        * `coordinate_y`
-        * `coordinate_x`
-        * `sigma_z` (optional)
-        * `sigma_yx`
-        * `amplitude`
+        * Coordinate along the z axis (optional).
+        * Coordinate along the y axis.
+        * Coordinate along the x axis.
+        * Standard deviation of the spot along the z axis (optional).
+        * Standard deviation of the spot in the yx plan.
+        * Intensity of the spot.
 
     """
     # check parameters
     stack.check_parameter(
+        ndim=int,
         n_spots=int,
         random_n_spots=bool,
         n_clusters=int,
@@ -87,10 +101,8 @@ def simulate_ground_truth(n_spots=30, random_n_spots=False,
         random_n_spots_cluster=bool,
         centered_cluster=bool,
         frame_shape=(tuple, list),
-        voxel_size_z=(int, float, type(None)),
-        voxel_size_yx=(int, float),
-        sigma_z=(int, float, type(None)),
-        sigma_yx=(int, float),
+        voxel_size=(int, float, tuple, list),
+        sigma=(int, float, tuple, list),
         random_sigma=(int, float),
         amplitude=(int, float),
         random_amplitude=(int, float))
@@ -100,20 +112,27 @@ def simulate_ground_truth(n_spots=30, random_n_spots=False,
             ndim=[2, 3],
             dtype=[np.float32, np.float64])
 
-    # check dimensions
-    ndim = len(frame_shape)
-    if ndim not in [2, 3]:
-        raise ValueError("'frame_shape' should have 2 or 3 elements, not {0}."
-                         .format(ndim))
-    if probability_map is not None and ndim != probability_map.ndim:
-        raise ValueError("'probability_map' dimension and 'frame_shape' are "
-                         "not consistent.")
-    if ndim == 3 and sigma_z is None:
-        raise ValueError("Frame to simulate has 3 dimensions but 'sigma_z' is "
-                         "missing.")
-    if ndim == 3 and voxel_size_z is None:
-        raise ValueError("Frame to simulate has 3 dimensions but "
-                         "'voxel_size_z' is missing.")
+    # check consistency between parameters
+    if isinstance(voxel_size, (tuple, list)):
+        if len(voxel_size) != ndim:
+            raise ValueError(
+                "'voxel_size' must be a scalar or a sequence with {0} "
+                "elements.".format(ndim))
+    else:
+        voxel_size = (voxel_size,) * ndim
+    if isinstance(sigma, (tuple, list)):
+        if len(sigma) != ndim:
+            raise ValueError(
+                "'sigma' must be a scalar or a sequence with {0} "
+                "elements.".format(ndim))
+    else:
+        sigma = (sigma,) * ndim
+    if len(frame_shape) != ndim:
+        raise ValueError("'frame_shape' should have {0} elements, not {0}."
+                         .format(ndim, len(frame_shape)))
+    if probability_map is not None and probability_map.ndim != ndim:
+        raise ValueError("'probability_map' should have {0} dimensions, not "
+                         "{0}.".format(ndim, probability_map.ndim))
 
     # generate number of spots to simulate
     nb_spots = _get_nb_spots(n=n_spots, random_n=random_n_spots)
@@ -128,10 +147,8 @@ def simulate_ground_truth(n_spots=30, random_n_spots=False,
         random_n_clusters=random_n_clusters,
         n_spots_cluster=n_spots_cluster,
         random_n_spots_cluster=random_n_spots_cluster,
-        voxel_size_z=voxel_size_z,
-        voxel_size_yx=voxel_size_yx,
-        sigma_z=sigma_z,
-        sigma_yx=sigma_yx,
+        voxel_size=voxel_size,
+        sigma=sigma,
         centered=centered_cluster,
         probability_map=probability_map)
 
@@ -154,8 +171,7 @@ def simulate_ground_truth(n_spots=30, random_n_spots=False,
     # generate sigma values
     sigmas_z, sigmas_yx = _get_sigma(
         ndim=ndim,
-        sigma_z=sigma_z,
-        sigma_yx=sigma_yx,
+        sigma=sigma,
         random_sigma=random_sigma,
         nb_spots=nb_spots)
 
@@ -207,15 +223,23 @@ def _get_nb_spots(n, random_n):
     return nb_spots
 
 
-def _get_clusters(frame_shape, ndim, nb_spots, n_clusters, random_n_clusters,
-                  n_spots_cluster, random_n_spots_cluster, voxel_size_z,
-                  voxel_size_yx, sigma_z, sigma_yx, centered=False,
-                  probability_map=None):
+def _get_clusters(
+        frame_shape,
+        ndim,
+        nb_spots,
+        n_clusters,
+        random_n_clusters,
+        n_spots_cluster,
+        random_n_spots_cluster,
+        voxel_size,
+        sigma,
+        centered=False,
+        probability_map=None):
     """Generate number of clusters and coordinates for clustered spots.
 
     Parameters
     ----------
-    frame_shape : Tuple[int or float] or List[int of float]
+    frame_shape : Tuple or List
         Shape (z, y, x) or (y, x) of the image to simulate.
     ndim : int
         Number of dimensions of the simulated image (2 or 3).
@@ -225,31 +249,27 @@ def _get_clusters(frame_shape, ndim, nb_spots, n_clusters, random_n_clusters,
         Expected number of clusters to simulate.
     random_n_clusters : bool
         Make the number of clusters follow a Poisson distribution with
-        expectation n_clusters, instead of a constant predefined value.
+        expectation `n_clusters`, instead of a constant predefined value.
     n_spots_cluster : int
         Expected number of spots to simulate per cluster.
     random_n_spots_cluster : bool
         Make the number of spots follow a Poisson distribution with
-        expectation n_spots_cluster, instead of a constant predefined value.
-    voxel_size_z : int or float or None
-        Height of a voxel, along the z axis, in nanometer. If None, we
-        consider a 2-d image.
-    voxel_size_yx : int or float
-        Size of a voxel on the yx plan, in nanometer.
-    sigma_z : int, float or None
-        Standard deviation of the gaussian along the z axis, in nanometer. If
-        None, we consider a 2-d image.
-    sigma_yx : int or float
-        Standard deviation of the gaussian along the yx axis, in nanometer.
-    centered : bool
+        expectation `n_spots_cluster`, instead of a constant predefined value.
+    voxel_size : tuple or list
+        Size of a voxel, in nanometer. One value per spatial dimension (zyx or
+        yx dimensions).
+    sigma : tuple or list
+        Standard deviation of the spot, in nanometer. One value per spatial
+        dimension (zyx or yx dimensions).
+    centered : bool, default=False
         Center the simulated cluster. Only used if one cluster is simulated.
-    probability_map : np.ndarray, np.float32 or None
+    probability_map : np.ndarray, np.float32, optional
         Array of probability, with shape (z, y, x) or (y, x). Sum to one.
 
     Returns
     -------
-    positions_z : np.ndarray, np.int64
-        Array of coordinates along the z axis, or None.
+    positions_z : np.ndarray, np.int64 or None
+        Array of coordinates along the z axis or None.
     positions_y : np.ndarray, np.int64
         Array of coordinates along the y axis.
     positions_x : np.ndarray, np.int64
@@ -319,9 +339,9 @@ def _get_clusters(frame_shape, ndim, nb_spots, n_clusters, random_n_clusters,
         # get spots coordinates
         scale_z = None
         if ndim == 3:
-            spots_scale_z = sigma_z / voxel_size_z
+            spots_scale_z = sigma[0] / voxel_size[0]
             scale_z = spots_scale_z * 0.2 * nb_spots_cluster
-        spots_scale_yx = sigma_yx / voxel_size_yx
+        spots_scale_yx = sigma[-1] / voxel_size[-1]
         scale_yx = spots_scale_yx * 0.2 * nb_spots_cluster
         if ndim == 3:
             rho_z = np.abs(np.random.normal(
@@ -338,7 +358,6 @@ def _get_clusters(frame_shape, ndim, nb_spots, n_clusters, random_n_clusters,
             positions_x.append(x)
 
         else:
-            # TODO check if np.abs() missing?
             rho_yx = np.random.normal(
                 loc=0.0, scale=scale_yx, size=nb_spots_cluster)
             phi = np.random.uniform(-np.pi, np.pi, nb_spots_cluster)
@@ -390,18 +409,18 @@ def _get_spots_coordinates(frame_shape, ndim, nb_spots, probability_map=None):
 
     Parameters
     ----------
-    frame_shape : Tuple[int or float] or List[int of float]
+    frame_shape : tuple or list
         Shape (z, y, x) or (y, x) of the image to simulate.
     ndim : int
         Number of dimensions of the simulated image (2 or 3).
     nb_spots : int
         Number of spots to simulate.
-    probability_map : np.ndarray, np.float32 or None
+    probability_map : np.ndarray, np.float32, optional
         Array of probability, with shape (z, y, x) or (y, x). Sum to one.
 
     Returns
     -------
-    positions_z : np.ndarray, np.int64
+    positions_z : np.ndarray, np.int64 or None
         Array of coordinates along the z axis, or None.
     positions_y : np.ndarray, np.int64
         Array of coordinates along the y axis.
@@ -450,27 +469,28 @@ def _get_spots_coordinates(frame_shape, ndim, nb_spots, probability_map=None):
     return positions_z, positions_y, positions_x
 
 
-def _get_sigma(ndim, sigma_z, sigma_yx, random_sigma, nb_spots):
+def _get_sigma(ndim, sigma, random_sigma, nb_spots):
     """Get standard deviations of the gaussians.
 
     Parameters
     ----------
     ndim : int
         Number of dimensions of the simulated image (2 or 3).
-    sigma_z : int, float or None
-        Standard deviation of the gaussian along the z axis, in nanometer. If
-        None, we consider a 2-d image.
-    sigma_yx : int or float
-        Standard deviation of the gaussian along the yx axis, in nanometer.
-    random_sigma : int of float
+    sigma : tuple or list
+        Standard deviation of the spot, in nanometer. One value per spatial
+        dimension (zyx or yx dimensions).
+    random_sigma : int or float
         Sigmas follow a normal distribution around the provided sigma values.
-        The scale used is scale = sigma_axis * random_sigma
+        The scale used is:
+
+        .. math::
+            \\mbox{scale} = \\mbox{sigma} * \\mbox{random_sigma}
     nb_spots : int
         Number of spots to simulate.
 
     Returns
     -------
-    sigmas_z : np.ndarray, np.float64
+    sigmas_z : np.ndarray, np.float64 or None
         Array of standard deviation along the z axis or None.
     sigmas_yx : np.ndarray, np.float64
         Array of standard deviation along the y or x axis.
@@ -478,14 +498,13 @@ def _get_sigma(ndim, sigma_z, sigma_yx, random_sigma, nb_spots):
     """
     # generate sigma values
     sigmas_z = None
-    if ndim == 3:
-        scale = sigma_z * random_sigma
-        sigmas_z = np.random.normal(loc=sigma_z, scale=scale, size=nb_spots)
-        sigmas_z[sigmas_z < 1] = 1.
-    scale = sigma_yx * random_sigma
-    sigmas_yx = np.random.normal(loc=sigma_yx, scale=scale, size=nb_spots)
+    scale = sigma[-1] * random_sigma
+    sigmas_yx = np.random.normal(loc=sigma[-1], scale=scale, size=nb_spots)
     sigmas_yx[sigmas_yx < 1] = 1.
-
+    if ndim == 3:
+        scale = sigma[0] * random_sigma
+        sigmas_z = np.random.normal(loc=sigma[0], scale=scale, size=nb_spots)
+        sigmas_z[sigmas_z < 1] = 1.
     return sigmas_z, sigmas_yx
 
 
@@ -495,17 +514,19 @@ def _get_amplitude(amplitude, random_amplitude, nb_spots):
     Parameters
     ----------
     amplitude : int or float
-        Amplitude of the gaussians.
+        Intensity of the spot.
     random_amplitude : int or float
-        Margin allowed around the amplitude value. The formula used is
-        margin = parameter * random_level.
+        Margin allowed around the amplitude value. The formula used is:
+
+        .. math::
+            \\mbox{margin} = \\mbox{amplitude} * \\mbox{random_amplitude}
     nb_spots : int
         Number of spots to simulate.
 
     Returns
     -------
     amplitudes : np.ndarray, np.float64
-        Array of gaussian amplitudes.
+        Array of spot amplitudes.
 
     """
     # generate amplitude values
