@@ -133,6 +133,7 @@ def simulate_ground_truth(
     if probability_map is not None and probability_map.ndim != ndim:
         raise ValueError("'probability_map' should have {0} dimensions, not "
                          "{0}.".format(ndim, probability_map.ndim))
+    # TODO add an error if 'probability_map' does not match 'frame_shape'
 
     # generate number of spots to simulate
     nb_spots = _get_nb_spots(n=n_spots, random_n=random_n_spots)
@@ -294,6 +295,7 @@ def _get_clusters(
 
     # simulate cluster centers
     if probability_map is not None:
+        # TODO to remove
         frame_shape = probability_map.shape
         sample = _sample_coordinates(nb_clusters, probability_map)
         center_cluster_z = None
@@ -442,15 +444,9 @@ def _get_spots_coordinates(frame_shape, ndim, nb_spots, probability_map=None):
     else:
         positions_z = None
         if ndim == 3:
-            positions_z = np.random.uniform(0, frame_shape[0], nb_spots)
-        positions_y = np.random.uniform(0, frame_shape[ndim - 2], nb_spots)
-        positions_x = np.random.uniform(0, frame_shape[ndim - 1], nb_spots)
-
-    # cast coordinates
-    if ndim == 3:
-        positions_z = np.round(positions_z).astype(np.int64)
-    positions_y = np.round(positions_y).astype(np.int64)
-    positions_x = np.round(positions_x).astype(np.int64)
+            positions_z = np.random.randint(0, frame_shape[0], nb_spots)
+        positions_y = np.random.randint(0, frame_shape[ndim - 2], nb_spots)
+        positions_x = np.random.randint(0, frame_shape[ndim - 1], nb_spots)
 
     # filter out spots incorrectly simulated
     if probability_map is not None:
