@@ -12,8 +12,8 @@ import sys
 
 import numpy as np
 import bigfish.stack as stack
-import simfish.spots as spots
-import simfish.plot as plot
+import bigfish.plot as plot
+import simfish as sim
 
 from joblib import Parallel, delayed
 
@@ -49,41 +49,6 @@ if __name__ == "__main__":
                         help="Number of images to simulate.",
                         type=int,
                         default=100)
-    parser.add_argument("image_z",
-                        help="Image shape (z axis).",
-                        type=int,
-                        default=10)
-    parser.add_argument("image_y",
-                        help="Image shape (y axis).",
-                        type=int,
-                        default=256)
-    parser.add_argument("image_x",
-                        help="Image shape (x axis).",
-                        type=int,
-                        default=256)
-    parser.add_argument("subpixel_factors_z",
-                        help="Multiplicative factor to simulate subpixel "
-                             "accuracy along z axis.",
-                        type=int,
-                        default=10)
-    parser.add_argument("subpixel_factors_y",
-                        help="Multiplicative factor to simulate subpixel "
-                             "accuracy along y axis.",
-                        type=int,
-                        default=10)
-    parser.add_argument("subpixel_factors_x",
-                        help="Multiplicative factor to simulate subpixel "
-                             "accuracy along x axis.",
-                        type=int,
-                        default=10)
-    parser.add_argument("voxel_size_z",
-                        help="Voxel size along the z axis (in nanometer).",
-                        type=int,
-                        default=100)
-    parser.add_argument("voxel_size_yx",
-                        help="Voxel size along the yx axis (in nanometer).",
-                        type=int,
-                        default=100)
     parser.add_argument("n_spots_min",
                         help="Number of spots to simulate per image "
                              "(lower bound).",
@@ -114,16 +79,23 @@ if __name__ == "__main__":
                         help="Random number of spots to simulate per cluster.",
                         type=int,
                         default=1)
-    parser.add_argument("sigma_z",
-                        help="PSF standard deviation along the z axis "
-                             "(in nanometer).",
-                        type=int,
-                        default=100)
-    parser.add_argument("sigma_yx",
-                        help="PSF standard deviation along the yx axis "
-                             "(in nanometer).",
-                        type=int,
-                        default=100)
+    parser.add_argument("image_shape",
+                        help="Image shape.",
+                        type=tuple,
+                        default=(10, 256, 256))
+    parser.add_argument("subpixel_factors",
+                        help="Multiplicative factor to simulate subpixel "
+                             "accuracy along along each dimension.",
+                        type=tuple,
+                        default=(10, 10, 10))
+    parser.add_argument("voxel_size",
+                        help="Voxel size (in nanometer).",
+                        type=tuple,
+                        default=(100, 100, 100))
+    parser.add_argument("sigma",
+                        help="PSF standard deviation (in nanometer).",
+                        type=tuple,
+                        default=(100, 100, 100))
     parser.add_argument("random_sigma",
                         help="Random margin over the sigma parameters.",
                         type=float,
@@ -150,24 +122,6 @@ if __name__ == "__main__":
     output_directory = args.output_directory
     experiment = args.experiment
     n_images = args.n_images
-    image_z = args.image_z
-    image_y = args.image_y
-    image_x = args.image_x
-    if image_z > 0:
-        image_shape = (image_z, image_y, image_x)
-    else:
-        image_shape = (image_y, image_x)
-    subpixel_factors_z = args.subpixel_factors_z
-    subpixel_factors_y = args.subpixel_factors_y
-    subpixel_factors_x = args.subpixel_factors_x
-    if subpixel_factors_z > 0:
-        subpixel_factors = (subpixel_factors_z, subpixel_factors_y,
-                            subpixel_factors_x)
-    else:
-        subpixel_factors = (subpixel_factors_y, subpixel_factors_x)
-    image_dtype = np.uint16
-    voxel_size_z = args.voxel_size_z
-    voxel_size_yx = args.voxel_size_yx
     n_spots_min = args.n_spots_min
     n_spots_max = args.n_spots_max
     n_spots = (n_spots_min, n_spots_max)
@@ -176,8 +130,13 @@ if __name__ == "__main__":
     random_n_clusters = bool(args.random_n_clusters)
     n_spots_cluster = args.n_spots_cluster
     random_n_spots_cluster = bool(args.random_n_spots_cluster)
-    sigma_z = args.sigma_z
-    sigma_yx = args.sigma_yx
+    centered_cluster = False
+    image_dtype = np.uint16
+    image_shape = args.image_shape
+    ndim = len(image_shape)
+    subpixel_factors = args.subpixel_factors
+    voxel_size = args.voxel_size
+    sigma = args.sigma
     random_sigma = args.random_sigma
     amplitude = args.amplitude
     random_amplitude = args.random_amplitude
@@ -206,11 +165,6 @@ if __name__ == "__main__":
     print("Output directory: {0}".format(output_directory))
     print("Experiment: {0}".format(experiment))
     print("Number of images: {0}".format(n_images))
-    print("Image shape: {0}".format(image_shape))
-    print("Subpixel factors: {0}".format(subpixel_factors))
-    print("Image dtype: {0}".format(image_dtype))
-    print("Size voxel z: {0}".format(voxel_size_z))
-    print("Size voxel yx: {0}".format(voxel_size_yx))
     print("Number of spots (min, max): {0}".format(n_spots))
     print("Random number of spots: {0}".format(random_n_spots))
     print("Number of clusters: {0}".format(n_clusters))
@@ -218,8 +172,13 @@ if __name__ == "__main__":
     print("Number of spots per cluster: {0}".format(n_spots_cluster))
     print("Random number of spots per cluster: {0}"
           .format(random_n_spots_cluster))
-    print("Sigma z: {0}".format(sigma_z))
-    print("Sigma yx: {0}".format(sigma_yx))
+    print("Center cluster (if only one cluster simulated): {0}"
+          .format(centered_cluster))
+    print("Image dtype: {0}".format(image_dtype))
+    print("Image shape: {0}".format(image_shape))
+    print("Subpixel factors: {0}".format(subpixel_factors))
+    print("Size voxel: {0}".format(voxel_size))
+    print("Sigma: {0}".format(sigma))
     print("Random sigma: {0}".format(random_sigma))
     print("Amplitude: {0}".format(amplitude))
     print("Random amplitude: {0}".format(random_amplitude))
@@ -232,21 +191,20 @@ if __name__ == "__main__":
 
     def fct_to_process(i, n):
         # simulate images
-        image, ground_truth = spots.simulate_image(
-            image_shape=image_shape,
-            image_dtype=image_dtype,
-            subpixel_factors=subpixel_factors,
-            voxel_size_z=voxel_size_z,
-            voxel_size_yx=voxel_size_yx,
+        image, ground_truth = sim.simulate_image(
+            ndim=ndim,
             n_spots=n,
             random_n_spots=random_n_spots,
             n_clusters=n_clusters,
             random_n_clusters=random_n_clusters,
             n_spots_cluster=n_spots_cluster,
             random_n_spots_cluster=random_n_spots_cluster,
-            centered_cluster=False,
-            sigma_z=sigma_z,
-            sigma_yx=sigma_yx,
+            centered_cluster=centered_cluster,
+            image_shape=image_shape,
+            image_dtype=np.uint16,
+            subpixel_factors=subpixel_factors,
+            voxel_size=voxel_size,
+            sigma=sigma,
             random_sigma=random_sigma,
             amplitude=amplitude,
             random_amplitude=random_amplitude,
@@ -261,19 +219,13 @@ if __name__ == "__main__":
 
         # plot
         path = os.path.join(path_directory_plot, "plot_{0}.png".format(i))
-        subpixel = True if subpixel_factors is not None else False
-        plot.plot_spots(
-            image,
-            ground_truth=None,
-            prediction=None,
-            subpixel=subpixel,
+        plot.plot_images(
+            images=image,
             rescale=True,
-            contrast=False,
-            title="Number of mRNAs: {0}".format(len(ground_truth)),
+            titles="Number of spots: {0}".format(len(ground_truth)),
             framesize=(8, 8),
             remove_frame=False,
             path_output=path,
-            ext="png",
             show=False)
 
         return
