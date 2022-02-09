@@ -5,7 +5,7 @@
 echo 'Running simulate_spots_range.sh...'
 
 # directories
-output_directory='/Users/arthur/output/2021_simulations'
+output_directory='/Users/arthur/output/2022_simulations'
 
 # python script
 script='/Users/arthur/sim-fish/scripts/python/simulate_range_spots.py'
@@ -14,7 +14,7 @@ script='/Users/arthur/sim-fish/scripts/python/simulate_range_spots.py'
 
 # parameters
 experiment="spots_065"
-n_images=100
+n_images=10
 n_spots_min=1
 n_spots_max=300
 random_n_spots=0
@@ -22,10 +22,10 @@ n_clusters=0
 random_n_clusters=0
 n_spots_cluster=0
 random_n_spots_cluster=0
-image_shape=(32, 128, 128)
-subpixel_factors=(10, 10, 10)
-voxel_size=(100, 100, 100)
-sigma=(100, 100, 100)
+image_shape="(32, 128, 128)"
+subpixel_factors="(1, 1, 1)"
+voxel_size="(100, 100, 100)"
+sigma="(100, 100, 100)"
 random_sigma=0.
 amplitude=1000
 random_amplitude=0.065

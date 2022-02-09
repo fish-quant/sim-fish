@@ -34,6 +34,13 @@ class Logger(object):
         pass
 
 
+def cast_tuple_int(tuple_str):
+    tuple_str = tuple_str[1:-1].split(",")
+    tuple_int = tuple([int(x) for x in tuple_str])
+
+    return tuple_int
+
+
 if __name__ == "__main__":
     print()
 
@@ -81,25 +88,25 @@ if __name__ == "__main__":
                         default=1)
     parser.add_argument("centered_cluster",
                         help="Center cluster (if only one cluster simulated).",
-                        type=int,
+                        type=str,
                         default=1)
     parser.add_argument("image_shape",
                         help="Image shape.",
-                        type=tuple,
-                        default=(10, 256, 256))
+                        type=str,
+                        default="(10, 256, 256)")
     parser.add_argument("subpixel_factors",
                         help="Multiplicative factor to simulate subpixel "
                              "accuracy along along each dimension.",
-                        type=tuple,
-                        default=(10, 10, 10))
+                        type=str,
+                        default="(1, 1, 1)")
     parser.add_argument("voxel_size",
                         help="Voxel size (in nanometer).",
-                        type=tuple,
-                        default=(100, 100, 100))
+                        type=str,
+                        default="(100, 100, 100)")
     parser.add_argument("sigma",
                         help="PSF standard deviation (in nanometer).",
-                        type=tuple,
-                        default=(100, 100, 100))
+                        type=str,
+                        default="(100, 100, 100)")
     parser.add_argument("random_sigma",
                         help="Random margin over the sigma parameters.",
                         type=float,
@@ -136,11 +143,12 @@ if __name__ == "__main__":
     random_n_spots_cluster = bool(args.random_n_spots_cluster)
     centered_cluster = bool(args.centered_cluster)
     image_dtype = np.uint16
-    image_shape = args.image_shape
+    print(args.image_shape)
+    image_shape = cast_tuple_int(args.image_shape)
     ndim = len(image_shape)
-    subpixel_factors = args.subpixel_factors
-    voxel_size = args.voxel_size
-    sigma = args.sigma
+    subpixel_factors = cast_tuple_int(args.subpixel_factors)
+    voxel_size = cast_tuple_int(args.voxel_size)
+    sigma = cast_tuple_int(args.sigma)
     random_sigma = args.random_sigma
     amplitude = args.amplitude
     random_amplitude = args.random_amplitude
@@ -169,6 +177,7 @@ if __name__ == "__main__":
     print("Output directory: {0}".format(output_directory))
     print("Experiment: {0}".format(experiment))
     print("Number of images: {0}".format(n_images))
+    print("Number of dimensions: {0}".format(ndim))
     print("Number of spots: {0}".format(n_spots))
     print("Random number of spots: {0}".format(random_n_spots))
     print("Number of clusters: {0}".format(n_clusters))
@@ -230,10 +239,11 @@ if __name__ == "__main__":
 
         # plot
         path = os.path.join(path_directory_plot, "plot_{0}.png".format(i))
+        image_mip = stack.maximum_projection(image)
         plot.plot_images(
-            images=image,
+            images=image_mip,
             rescale=True,
-            titles="Number of spots: {0}".format(len(ground_truth)),
+            titles=["Number of spots: {0}".format(len(ground_truth))],
             framesize=(8, 8),
             remove_frame=False,
             path_output=path,
