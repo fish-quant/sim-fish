@@ -9,15 +9,15 @@ Functions used to simulate spot coordinates and image, in 2D and 3D.
 
 Simulation is performed in three steps:
 
-* We simulate ground truth coordinates.
+#. We simulate ground truth coordinates.
 
     * :func:`simfish.spots.simulate_ground_truth`
 
-* From an empty frame we simulate a gaussian signal in every spot location.
+#. From an empty frame we simulate a gaussian signal in every spot location.
 
     * :func:`simfish.spots.add_spots`
 
-* We add an additive background noise in image if needed.
+#. We add an additive background noise in image if needed.
 
     * :func:`simfish.spots.add_white_noise`
 
