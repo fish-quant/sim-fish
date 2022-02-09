@@ -27,6 +27,7 @@ def add_white_noise(image, noise_level, random_noise=0.05):
 
         .. math::
                 \\mbox{scale} = \\mbox{noise_level} * \\mbox{random_noise}
+
     Returns
     -------
     noised_image : np.ndarray
