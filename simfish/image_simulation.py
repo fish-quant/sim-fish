@@ -325,9 +325,6 @@ def simulate_image(
     # initialize image
     image = np.zeros(image_shape, dtype=image_dtype)
 
-    # compensate noise level in amplitude
-    amplitude -= noise_level
-
     # generate ground truth
     ground_truth = simulate_ground_truth(
         ndim=ndim,
