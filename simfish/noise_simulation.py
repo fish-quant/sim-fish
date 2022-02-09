@@ -55,6 +55,7 @@ def add_white_noise(image, noise_level, random_noise=0.05):
 
     # generate noise
     noise_raw = np.random.normal(loc=noise_level, scale=scale, size=image.size)
+    noise_raw[noise_raw < 0] = 0.
     noise_raw = np.random.poisson(lam=noise_raw, size=noise_raw.size)
     noise = np.reshape(noise_raw, image.shape)
 
