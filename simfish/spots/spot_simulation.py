@@ -13,65 +13,66 @@ import bigfish.detection as detection
 
 # ### Gaussian simulation ###
 
-def add_spots(image, ground_truth, voxel_size_z=None, voxel_size_yx=100,
-              precomputed_gaussian=None):
+def add_spots(image, ground_truth, voxel_size, precomputed_gaussian=None):
     """Simulate gaussian spots based on the ground truth coordinates.
 
     Parameters
     ----------
-    image : np.ndarray, np.uint
+    image : np.ndarray
         Image with shape (z, y, x) or (y, x).
     ground_truth : np.ndarray, np.float64
-        Ground truth array with shape (nb_spots, 6) or (nb_spots, 4):
+        Ground truth array with shape (nb_spots, 6) or (nb_spots, 4). Columns
+        are:
 
-        * `coordinate_z` (optional)
-        * `coordinate_y`
-        * `coordinate_x`
-        * `sigma_z` (optional)
-        * `sigma_yx`
-        * `amplitude`
-
-    voxel_size_z : int or float or None
-        Height of a voxel, along the z axis, in nanometer. If None, we
-        consider a 2-d image.
-    voxel_size_yx : int or float
-        Size of a voxel on the yx plan, in nanometer.
-    precomputed_gaussian : Tuple[np.ndarray]
-        Tuple with one tables of precomputed values for the erf, with shape
+        * Coordinate along the z axis (optional).
+        * Coordinate along the y axis.
+        * Coordinate along the x axis.
+        * Standard deviation of the spot along the z axis (optional).
+        * Standard deviation of the spot in the yx plan.
+        * Intensity of the spot.
+    voxel_size : int or float or tuple or list
+        Size of a voxel, in nanometer. One value per spatial dimension (zyx or
+        yx dimensions). If it's a scalar, the same value is applied to every
+        dimensions.
+    precomputed_gaussian : sequence of array_like, optional
+        Sequence with tables of precomputed values for the erf, with shape
         (nb_value, 2). One table per dimension.
 
     Returns
     -------
-    image_with_spots : np.ndarray, np.uint
+    image_with_spots : np.ndarray
         A 3-d or 2-d image with simulated spots and shape (z, y, x) or (y, x).
 
     """
     # check parameters
-    stack.check_array(image, ndim=[2, 3], dtype=[np.uint8, np.uint16])
+    stack.check_array(
+        image,
+        ndim=[2, 3],
+        dtype=[np.uint8, np.uint16, np.float32, np.float64])
     stack.check_array(ground_truth, ndim=2, dtype=np.float64)
-    stack.check_parameter(
-        voxel_size_z=(int, float, type(None)),
-        voxel_size_yx=(int, float))
+    stack.check_parameter(voxel_size=(int, float, tuple, list))
 
-    # check number of dimensions
+    # check consistency between parameters
     ndim = image.ndim
-    if ndim == 3 and voxel_size_z is None:
-        raise ValueError("Provided image has {0} dimensions but "
-                         "'voxel_size_z' parameter is missing.".format(ndim))
+    if isinstance(voxel_size, (tuple, list)):
+        if len(voxel_size) != ndim:
+            raise ValueError(
+                "'voxel_size' must be a scalar or a sequence with {0} "
+                "elements.".format(ndim))
+    else:
+        voxel_size = (voxel_size,) * ndim
     if ndim == 3 and ground_truth.shape[1] != 6:
-        raise ValueError("Provided image has 3 dimensions but 'ground_truth' "
-                         "has only {0} columns instead of 6."
+        raise ValueError("Provided image has 3 dimensions so 'ground_truth' "
+                         "should have 6 columns, not {0}."
                          .format(ground_truth.shape[1]))
-    if ndim == 2:
-        voxel_size_z = None
 
     # simulate and add 3-d spots...
     if image.ndim == 3:
         image_with_spots = _add_spot_3d(
             image=image,
             ground_truth=ground_truth,
-            voxel_size_z=voxel_size_z,
-            voxel_size_yx=voxel_size_yx,
+            voxel_size_z=voxel_size[0],
+            voxel_size_yx=voxel_size[-1],
             precomputed_gaussian=precomputed_gaussian)
 
     # ... or 2-d spots
@@ -79,44 +80,53 @@ def add_spots(image, ground_truth, voxel_size_z=None, voxel_size_yx=100,
         image_with_spots = _add_spot_2d(
             image=image,
             ground_truth=ground_truth,
-            voxel_size_yx=voxel_size_yx,
+            voxel_size_yx=voxel_size[-1],
             precomputed_gaussian=precomputed_gaussian)
 
     return image_with_spots
 
 
-def _add_spot_3d(image, ground_truth, voxel_size_z, voxel_size_yx,
-                 precomputed_gaussian):
+def _add_spot_3d(
+        image,
+        ground_truth,
+        voxel_size_z,
+        voxel_size_yx,
+        precomputed_gaussian):
     """Add a 3-d gaussian spot in an image.
 
     Parameters
     ----------
-    image : np.ndarray, np.uint
+    image : np.ndarray
         A 3-d image with shape (z, y, x).
-    ground_truth : np.ndarray
-        Ground truth array with shape (nb_spots, 6).
-        - coordinate_z
-        - coordinate_y
-        - coordinate_x
-        - sigma_z
-        - sigma_yx
-        - amplitude
+    ground_truth : np.ndarray, np.float64
+        Ground truth array with shape (nb_spots, 6). Columns are:
+
+        * Coordinate along the z axis.
+        * Coordinate along the y axis.
+        * Coordinate along the x axis.
+        * Standard deviation of the spot along the z axis.
+        * Standard deviation of the spot in the yx plan.
+        * Intensity of the spot.
     voxel_size_z : int or float
-        Height of a voxel, along the z axis, in nanometer.
+        Size of a voxel, along the z axis, in nanometer.
     voxel_size_yx : int or float
-        Size of a voxel on the yx plan, in nanometer.
-    precomputed_gaussian : Tuple[np.ndarray]
-        Tuple with one tables of precomputed values for the erf, with shape
+        Size of a voxel in the yx plan, in nanometer.
+    precomputed_gaussian : sequence of array_like
+        Sequence with tables of precomputed values for the erf, with shape
         (nb_value, 2). One table per dimension.
 
     Returns
     -------
-    new_image : np.ndarray, np.uint
+    new_image : np.ndarray
         A 3-d image with simulated spots and shape (z, y, x).
 
     """
     # cast image
     original_dtype = image.dtype
+    if np.issubdtype(original_dtype, np.integer):
+        original_max_bound = np.iinfo(original_dtype).max
+    else:
+        original_max_bound = np.finfo(original_dtype).max
     image = image.astype(np.float64)
 
     # compute reference spot shape
@@ -139,9 +149,10 @@ def _add_spot_3d(image, ground_truth, voxel_size_z, voxel_size_yx,
         voxel_size=(voxel_size_z, voxel_size_yx, voxel_size_yx),
         return_centroid=False)
 
-    # pad image
+    # initialize an empty image and pad it
+    image_padded = np.zeros_like(image)
     image_padded = np.pad(
-        image,
+        image_padded,
         pad_width=((radius_z, radius_z),
                    (radius_yx, radius_yx),
                    (radius_yx, radius_yx)),
@@ -181,89 +192,20 @@ def _add_spot_3d(image, ground_truth, voxel_size_z, voxel_size_yx,
                      coord_y_min:coord_y_max,
                      coord_x_min:coord_x_max] += simulated_spot
 
+    # sample Poisson distribution for each pixel
+    image_padded_raw = np.reshape(image_padded, -1)
+    image_padded_raw = np.random.poisson(
+        lam=image_padded_raw, size=image_padded_raw.size)
+    image_padded = np.reshape(image_padded_raw, image_padded.shape)
+
     # unpad image
-    image = image_padded[radius_z:-radius_z,
-                         radius_yx:-radius_yx,
-                         radius_yx:-radius_yx]
-    image_raw = np.reshape(image, image.size)
+    new_image = image_padded[radius_z:-radius_z,
+                             radius_yx:-radius_yx,
+                             radius_yx:-radius_yx]
 
-    # sample Poisson distribution from gaussian values
-    image_raw = np.random.poisson(lam=image_raw, size=image_raw.size)
-
-    # reshape and cast image
-    new_image = np.reshape(image_raw, image.shape)
-    new_image = np.clip(new_image, 0, np.iinfo(original_dtype).max)
+    # cast image
+    new_image = np.clip(new_image, 0, original_max_bound)
     new_image = new_image.astype(original_dtype)
-
-    return new_image
-
-
-def _add_spot_3d_bis(image, ground_truth, voxel_size_z, voxel_size_yx,
-                     precomputed_gaussian):
-    """Add a 3-d gaussian spot in an image.
-
-    Parameters
-    ----------
-    image : np.ndarray, np.uint
-        A 3-d image with shape (z, y, x).
-    ground_truth : np.ndarray
-        Ground truth array with shape (nb_spots, 6).
-        - coordinate_z
-        - coordinate_y
-        - coordinate_x
-        - sigma_z
-        - sigma_yx
-        - amplitude
-    voxel_size_z : int or float
-        Height of a voxel, along the z axis, in nanometer.
-    voxel_size_yx : int or float
-        Size of a voxel on the yx plan, in nanometer.
-    precomputed_gaussian : Tuple[np.ndarray]
-        Tuple with one tables of precomputed values for the erf, with shape
-        (nb_value, 2). One table per dimension.
-
-    Returns
-    -------
-    new_image : np.ndarray, np.uint
-        A 3-d image with simulated spots and shape (z, y, x).
-
-    """
-    # reshape and cast image
-    expectations_raw = np.reshape(image, image.size)
-    expectations_raw = expectations_raw.astype(np.float64)
-
-    # build a grid to represent this image
-    grid = detection.initialize_grid(
-        image_spot=image,
-        voxel_size=(voxel_size_z, voxel_size_yx, voxel_size_yx),
-        return_centroid=False)
-
-    # add spots
-    for (coord_z, coord_y, coord_x, sigma_z, sigma_yx, amp) in ground_truth:
-        position_spot = np.asarray((coord_z, coord_y, coord_x), dtype=np.int64)
-        position_spot = np.ravel_multi_index(position_spot, dims=image.shape)
-        position_spot = list(grid[:, position_spot])
-        expectations_raw += detection.gaussian_3d(
-            grid=grid,
-            mu_z=position_spot[0],
-            mu_y=position_spot[1],
-            mu_x=position_spot[2],
-            sigma_z=sigma_z,
-            sigma_yx=sigma_yx,
-            voxel_size_z=voxel_size_z,
-            voxel_size_yx=voxel_size_yx,
-            amplitude=amp,
-            background=0,
-            precomputed=precomputed_gaussian)
-
-    # sample Poisson distribution from gaussian values
-    image_raw = np.random.poisson(
-        lam=expectations_raw, size=expectations_raw.size)
-
-    # reshape and cast image
-    new_image = np.reshape(image_raw, image.shape)
-    new_image = np.clip(new_image, 0, np.iinfo(image.dtype).max)
-    new_image = new_image.astype(image.dtype)
 
     return new_image
 
@@ -273,28 +215,33 @@ def _add_spot_2d(image, ground_truth, voxel_size_yx, precomputed_gaussian):
 
     Parameters
     ----------
-    image : np.ndarray, np.uint
+    image : np.ndarray
         A 2-d image with shape (y, x).
-    ground_truth : np.ndarray
-        Ground truth array with shape (nb_spots, 4).
-        - coordinate_y
-        - coordinate_x
-        - sigma_yx
-        - amplitude
+    ground_truth : np.ndarray, np.float64
+        Ground truth array with shape (nb_spots, 4). Columns are:
+
+        * Coordinate along the y axis.
+        * Coordinate along the x axis.
+        * Standard deviation of the spot in the yx plan.
+        * Intensity of the spot.
     voxel_size_yx : int or float
-        Size of a voxel on the yx plan, in nanometer.
-    precomputed_gaussian : Tuple[np.ndarray]
-        Tuple with one tables of precomputed values for the erf, with shape
+        Size of a voxel in the yx plan, in nanometer.
+    precomputed_gaussian : sequence of array_like
+        Sequence with tables of precomputed values for the erf, with shape
         (nb_value, 2). One table per dimension.
 
     Returns
     -------
-    new_image : np.ndarray, np.uint
+    new_image : np.ndarray
         A 2-d image with simulated spots and shape (y, x).
 
     """
     # cast image
     original_dtype = image.dtype
+    if np.issubdtype(original_dtype, np.integer):
+        original_max_bound = np.iinfo(original_dtype).max
+    else:
+        original_max_bound = np.finfo(original_dtype).max
     image = image.astype(np.float64)
 
     # compute reference spot shape
@@ -314,9 +261,10 @@ def _add_spot_2d(image, ground_truth, voxel_size_yx, precomputed_gaussian):
         voxel_size=(voxel_size_yx, voxel_size_yx),
         return_centroid=False)
 
-    # pad image
+    # initialize an empty image and pad it
+    image_padded = np.zeros_like(image)
     image_padded = np.pad(
-        image,
+        image_padded,
         pad_width=((radius_yx, radius_yx),
                    (radius_yx, radius_yx)),
         mode="constant")
@@ -348,16 +296,17 @@ def _add_spot_2d(image, ground_truth, voxel_size_yx, precomputed_gaussian):
         image_padded[coord_y_min:coord_y_max,
                      coord_x_min:coord_x_max] += simulated_spot
 
+    # sample Poisson distribution for each pixel
+    image_padded_raw = np.reshape(image_padded, -1)
+    image_padded_raw = np.random.poisson(
+        lam=image_padded_raw, size=image_padded_raw.size)
+    image_padded = np.reshape(image_padded_raw, image_padded.shape)
+
     # unpad image
-    image = image_padded[radius_yx:-radius_yx, radius_yx:-radius_yx]
-    image_raw = np.reshape(image, image.size)
+    new_image = image_padded[radius_yx:-radius_yx, radius_yx:-radius_yx]
 
-    # sample Poisson distribution from gaussian values
-    image_raw = np.random.poisson(lam=image_raw, size=image_raw.size)
-
-    # reshape and cast image
-    new_image = np.reshape(image_raw, image.shape)
-    new_image = np.clip(new_image, 0, np.iinfo(original_dtype).max)
+    # cast image
+    new_image = np.clip(new_image, 0, original_max_bound)
     new_image = new_image.astype(original_dtype)
 
     return new_image
