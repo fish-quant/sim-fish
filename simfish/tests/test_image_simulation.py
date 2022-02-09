@@ -3,13 +3,13 @@
 # License: BSD 3 clause
 
 """
-Unitary tests for simfish.spots.image_simulation module.
+Unitary tests for simfish.image_simulation module.
 """
 
 import pytest
 
 import numpy as np
-import simfish.spots as spots
+import simfish as sim
 
 
 # TODO add test for downscale_image
@@ -25,7 +25,7 @@ def test_simulate_images(image_dtype, subpixel_factors_value):
         subpixel_factors = (subpixel_factors_value,) * 2
     else:
         subpixel_factors = None
-    generator = spots.simulate_images(
+    generator = sim.simulate_images(
         n_images=5,
         ndim=2,
         n_spots=10,
@@ -45,7 +45,7 @@ def test_simulate_images(image_dtype, subpixel_factors_value):
         subpixel_factors = (subpixel_factors_value,) * 3
     else:
         subpixel_factors = None
-    generator = spots.simulate_images(
+    generator = sim.simulate_images(
         n_images=5,
         ndim=3,
         n_spots=10,
@@ -74,7 +74,7 @@ def test_simulate_image(image_dtype, subpixel_factors_value):
         subpixel_factors = (subpixel_factors_value,) * 2
     else:
         subpixel_factors = None
-    image, ground_truth = spots.simulate_image(
+    image, ground_truth = sim.simulate_image(
         ndim=2,
         n_spots=10,
         image_shape=(10, 10),
@@ -89,7 +89,7 @@ def test_simulate_image(image_dtype, subpixel_factors_value):
         subpixel_factors = (subpixel_factors_value,) * 3
     else:
         subpixel_factors = None
-    image, ground_truth = spots.simulate_image(
+    image, ground_truth = sim.simulate_image(
         ndim=3,
         n_spots=10,
         image_shape=(10, 10, 10),

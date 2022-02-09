@@ -3,11 +3,11 @@
 # License: BSD 3 clause
 
 """
-Unitary tests for simfish.spots.pattern_simulation module.
+Unitary tests for simfish.pattern_simulation module.
 """
 
 import numpy as np
-import simfish.spots as spots
+import simfish as sim
 
 
 # TODO add test for `probability_map` parameter
@@ -15,7 +15,7 @@ import simfish.spots as spots
 
 def test_format():
     # 2D simulation
-    ground_truth = spots.simulate_ground_truth(
+    ground_truth = sim.simulate_ground_truth(
         ndim=2,
         n_spots=8,
         frame_shape=(32, 32),
@@ -25,7 +25,7 @@ def test_format():
     assert ground_truth.shape == (8, 4)
 
     # 3D simulation
-    ground_truth = spots.simulate_ground_truth(
+    ground_truth = sim.simulate_ground_truth(
         ndim=3,
         n_spots=12,
         frame_shape=(10, 32, 32),
@@ -37,7 +37,7 @@ def test_format():
 
 def test_randomness():
     # randomness
-    _ = spots.simulate_ground_truth(
+    _ = sim.simulate_ground_truth(
         ndim=2,
         n_spots=30,
         random_n_spots=True,
@@ -49,7 +49,7 @@ def test_randomness():
     assert True
 
     # no randomness
-    ground_truth = spots.simulate_ground_truth(
+    ground_truth = sim.simulate_ground_truth(
         ndim=2,
         n_spots=30,
         random_n_spots=False,

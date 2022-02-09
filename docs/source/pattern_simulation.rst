@@ -3,6 +3,6 @@
 Pattern simulation
 ******************
 
-.. currentmodule:: simfish.spots
+.. currentmodule:: simfish
 
 Functions used to simulate spots localization patterns.

@@ -3,7 +3,6 @@ comment: false
 ignore:
   - "setup.py"
   - "scripts"
-  - "simfish/plot"
   - "data"
 
 coverage:

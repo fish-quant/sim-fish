@@ -67,8 +67,9 @@ def simulate_images(
         Center the simulated cluster. Only used one cluster is simulated.
     image_shape : tuple or list, default=(128, 128)
         Shape (z, y, x) or (y, x) of the images to simulate.
-    image_dtype : {np.uint8, np.uint16, np.float32, np.float64}, default=np.uint16
-        Type of the images to simulate.
+    image_dtype : dtype, default=np.uint16
+        Type of the image to simulate (np.uint8, np.uint16, np.float32 or
+        np.float64).
     subpixel_factors : tuple or list, optional
         Scaling factors to simulate images with subpixel accuracy. First a
         larger image is simulated, with larger spots, then we downscale it. One
@@ -207,8 +208,9 @@ def simulate_image(
         Center the simulated cluster. Only used one cluster is simulated.
     image_shape : tuple or list, default=(128, 128)
         Shape (z, y, x) or (y, x) of the image to simulate.
-    image_dtype : {np.uint8, np.uint16, np.float32, np.float64}, default=np.uint16
-        Type of the image to simulate.
+    image_dtype : dtype, default=np.uint16
+        Type of the image to simulate (np.uint8, np.uint16, np.float32 or
+        np.float64).
     subpixel_factors : tuple or list, optional
         Scaling factors to simulate an image with subpixel accuracy. First a
         larger image is simulated, with larger spots, then we downscale it. One
