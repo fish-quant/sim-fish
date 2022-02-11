@@ -3,7 +3,7 @@
 # License: BSD 3 clause
 
 """
-Functions to simulate spots patterns.
+Functions to simulate spot coordinates and localization patterns.
 """
 
 import numpy as np
