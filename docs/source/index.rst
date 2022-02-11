@@ -51,7 +51,7 @@ API reference
 .. toctree::
    :caption: Simulations
 
-   spot_simulation
+   image_simulation
    pattern_simulation
 
 ------------

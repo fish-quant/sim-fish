@@ -1,11 +1,11 @@
-.. _spot_simulation overview:
+.. _image_simulation overview:
 
-Spot simulation
-***************
+Image simulation
+****************
 
 .. currentmodule:: simfish
 
-Functions used to simulate spot coordinates and image, in 2D and 3D.
+Functions used to simulate spot images, in 2D and 3D.
 
 Simulation is performed in three steps:
 

@@ -5,4 +5,4 @@ Pattern simulation
 
 .. currentmodule:: simfish
 
-Functions used to simulate spots localization patterns.
+Functions used to simulate localization patterns.
