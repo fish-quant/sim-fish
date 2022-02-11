@@ -10,6 +10,8 @@ import numpy as np
 import bigfish.stack as stack
 
 
+# ### Spots coordinates ###
+
 def simulate_ground_truth(
         ndim,
         n_spots,
@@ -587,3 +589,8 @@ def _sample_coordinates(n, probability_map):
     sample = coord[index_sample]
 
     return sample
+
+
+# ### Localization patterns ###
+
+
