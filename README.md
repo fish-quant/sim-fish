@@ -20,6 +20,7 @@ Sim-FISH requires Python 3.6 or newer. Additionally, it has the following depend
 - numpy (>= 1.16.0)
 - scikit-image (>= 0.14.2)
 - matplotlib (>= 3.0.2)
+- pandas (>= 0.24.0)
 
 ### Virtual environment
 

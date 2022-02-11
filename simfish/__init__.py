@@ -15,6 +15,10 @@ The simfish package includes function to simulate RNA spots and FISH images in
 __version__ = "0.1.0dev"
 
 
+from .utils import read_index_template
+from .utils import build_templates
+from .utils import build_template
+
 from .pattern_simulation import simulate_ground_truth
 
 from .spot_simulation import add_spots
@@ -24,6 +28,11 @@ from .noise_simulation import add_white_noise
 from .image_simulation import simulate_images
 from .image_simulation import simulate_image
 
+
+_utils = [
+    "read_index_template",
+    "build_templates",
+    "build_template"]
 
 _patterns = [
     "simulate_ground_truth"]
