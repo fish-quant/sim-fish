@@ -5,7 +5,7 @@
 echo 'Running simulate_spots_range.sh...'
 
 # directories
-output_directory='/Users/arthur/output/2022_simulations'
+output_directory='/Users/arthur/output/2021_simulations'
 
 # python script
 script='/Users/arthur/sim-fish/scripts/python/simulate_range_spots.py'
@@ -14,7 +14,7 @@ script='/Users/arthur/sim-fish/scripts/python/simulate_range_spots.py'
 
 # parameters
 experiment="spots_065"
-n_images=10
+n_images=100
 n_spots_min=1
 n_spots_max=300
 random_n_spots=0

@@ -5,7 +5,7 @@
 echo 'Running simulate_cluster_range.sh...'
 
 # directories
-output_directory='/Users/arthur/output/2022_simulations'
+output_directory='/Users/arthur/output/2021_simulations'
 
 # python script
 script='/Users/arthur/sim-fish/scripts/python/simulate_range_spots_cluster.py'
@@ -14,7 +14,7 @@ script='/Users/arthur/sim-fish/scripts/python/simulate_range_spots_cluster.py'
 
 # parameters
 experiment="cluster_065"
-n_images=10
+n_images=100
 n_spots=100
 random_n_spots=0
 n_clusters=1
