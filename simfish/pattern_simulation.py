@@ -856,7 +856,7 @@ def get_protrusion_probability_map(
         cell_mask,
         nuc_mask,
         protrusion_map):
-    """Compute a probability map to sample a cell edge pattern.
+    """Compute a probability map to sample a protrusion pattern.
 
     Parameters
     ----------
