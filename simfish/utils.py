@@ -112,8 +112,9 @@ def build_template(
     i : int, optional
         Template id to build (between 0 and 317). If None, a random template
         is built.
-    index_template : pd.DataFrame
-        Dataframe with the templates metadata. Columns are:
+    index_template : pd.DataFrame, optional
+        Dataframe with the templates metadata. If None, dataframe is load from
+        'path_template_directory'. Columns are:
 
         * 'id' instance id.
         * 'shape' shape of the cell image (with the format '{z}_{y}_{x}').
