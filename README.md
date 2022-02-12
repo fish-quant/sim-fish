@@ -63,18 +63,12 @@ If you have any question relative to the repository, please open an [issue](http
 
 ## Roadmap (suggestion)
 
-Version 0.1.0:
-- I/O routines.
-- Random spot simulation in 2D and 3D.
-- Localized spot simulation in 2D and 3D. 
-- Clustered spot simulation in 2D and 3D.
-- Add sphinx documentation.
-
 Version 0.Y.0:
 - Improve background noise simulation.
 - Cell and nucleus simulation in 2D.
 - Cell and nucleus simulation in 3D.
 - Allow benchmark and valuation pipeline.
+- Add simulation of colocalized spots
 - Add examples
 
 Version 1.0.0:

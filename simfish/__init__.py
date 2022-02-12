@@ -67,7 +67,5 @@ _images = [
 
 __all__ = _patterns + _spots + _noise + _images
 
-# TODO complete documentation
-# TODO add colocalization
-# TODO add segmentation mask
+# TODO add image in readme and documentation
 # TODO build package and push to pypi
