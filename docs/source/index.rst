@@ -53,6 +53,7 @@ API reference
 
    image_simulation
    pattern_simulation
+   utils
 
 ------------
 

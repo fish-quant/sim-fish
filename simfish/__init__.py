@@ -30,7 +30,6 @@ from .pattern_simulation import get_protrusion_probability_map
 from .pattern_simulation import build_probability_map
 from .pattern_simulation import simulate_localization_pattern
 
-
 from .spot_simulation import add_spots
 
 from .noise_simulation import add_white_noise
