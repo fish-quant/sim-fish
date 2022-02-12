@@ -97,8 +97,11 @@ def build_templates(path_template_directory, protrusion=None):
         yield template
 
 
-def build_template(path_template_directory, i=None, index_template=None,
-                   protrusion=None):
+def build_template(
+        path_template_directory,
+        i=None,
+        index_template=None,
+        protrusion=None):
     """Build template from sparse coordinates. Outcomes are binary masks and
     distance maps, for cell, nucleus and protrusion.
 
