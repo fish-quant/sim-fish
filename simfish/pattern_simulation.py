@@ -909,7 +909,7 @@ def get_protrusion_probability_map(
 
 def build_probability_map(
         path_template_directory,
-        i=None,
+        i_cell=None,
         index_template=None,
         map_distribution="random",
         strength=0.5,
@@ -920,7 +920,7 @@ def build_probability_map(
     ----------
     path_template_directory : str
         Path of the templates directory.
-    i : int, optional
+    i_cell : int, optional
         Template id to build (between 0 and 317). If None, a random template
         is built.
     index_template : pd.DataFrame, optional
@@ -972,7 +972,7 @@ def build_probability_map(
     (cell_mask, cell_map, nuc_mask, nuc_map, protrusion_mask,
      protrusion_map) = build_template(
         path_template_directory=path_template_directory,
-        i=i,
+        i_cell=i_cell,
         index_template=index_template,
         protrusion=protrusion)
 
@@ -1010,7 +1010,7 @@ def build_probability_map(
 def simulate_localization_pattern(
         path_template_directory,
         n_spots,
-        i=None,
+        i_cell=None,
         index_template=None,
         pattern="random",
         strength=0.5):
@@ -1023,7 +1023,7 @@ def simulate_localization_pattern(
         Path of the templates directory.
     n_spots : int
         Number of spots to simulate.
-    i : int, optional
+    i_cell : int, optional
         Template id to build (between 0 and 317). If None, a random template
         is built.
     index_template : pd.DataFrame, optional
@@ -1087,7 +1087,7 @@ def simulate_localization_pattern(
     # build probability map
     probability_map, cell_mask, nuc_mask = build_probability_map(
         path_template_directory=path_template_directory,
-        i=i,
+        i_cell=i_cell,
         index_template=index_template,
         map_distribution=map_distribution,
         strength=strength,

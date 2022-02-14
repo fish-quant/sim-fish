@@ -90,7 +90,7 @@ def build_templates(path_template_directory, protrusion=None):
     for i in indices:
         template = build_template(
             path_template_directory=path_template_directory,
-            i=i,
+            i_cell=i,
             index_template=df,
             protrusion=protrusion)
 
@@ -99,7 +99,7 @@ def build_templates(path_template_directory, protrusion=None):
 
 def build_template(
         path_template_directory,
-        i=None,
+        i_cell=None,
         index_template=None,
         protrusion=None):
     """Build template from sparse coordinates. Outcomes are binary masks and
@@ -109,7 +109,7 @@ def build_template(
     ----------
     path_template_directory : str
         Path of the templates directory.
-    i : int, optional
+    i_cell : int, optional
         Template id to build (between 0 and 317). If None, a random template
         is built.
     index_template : pd.DataFrame, optional
@@ -142,7 +142,7 @@ def build_template(
     # check parameters
     stack.check_parameter(
         path_template_directory=str,
-        i=(int, type(None)),
+        i_cell=(int, type(None)),
         index_template=(pd.DataFrame, type(None)),
         protrusion=(bool, type(None)))
 
@@ -161,20 +161,20 @@ def build_template(
         indices = df.loc[df.loc[:, "protrusion_flag"] == "noprotrusion", "id"]
 
     # check specific template or sample one
-    if i is not None:
-        if i not in indices and protrusion:
+    if i_cell is not None:
+        if i_cell not in indices and protrusion:
             raise ValueError("Requested template {0} does not have protrusion."
-                             .format(i))
-        elif i not in indices and not protrusion:
+                             .format(i_cell))
+        elif i_cell not in indices and not protrusion:
             raise ValueError("Requested template {0} has protrusion."
-                             .format(i))
+                             .format(i_cell))
     else:
-        i = np.random.choice(indices)
+        i_cell = np.random.choice(indices)
 
     # get metadata and build filename
-    shape_str = df.loc[i, "shape"]
-    protrusion_flag = df.loc[i, "protrusion_flag"]
-    filename = "{0}_{1}_{2}".format(i, shape_str, protrusion_flag)
+    shape_str = df.loc[i_cell, "shape"]
+    protrusion_flag = df.loc[i_cell, "protrusion_flag"]
+    filename = "{0}_{1}_{2}".format(i_cell, shape_str, protrusion_flag)
 
     # read files
     path = os.path.join(
