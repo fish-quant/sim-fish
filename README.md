@@ -102,3 +102,23 @@ git checkout develop
 ### Contributing
 
 [Pull requests](https://github.com/fish-quant/sim-fish/pulls) are welcome. For major changes, please open an [issue](https://github.com/fish-quant/sim-fish/issues) first to discuss what you would like to change.
+
+### Testing
+
+Please make sure to update tests as appropriate if you open a pull request. You can install exacts dependencies and specific version of [pytest](https://docs.pytest.org/en/latest/) by running the following command:
+
+```bash
+pip install -r requirements_dev.txt
+```
+
+To perform unit tests, run : 
+
+```bash
+pytest simfish
+```
+
+## Citation
+
+If you exploit this package for your work, please cite:
+
+> Arthur Imbert, Wei Ouyang, Adham Safieddine, Emeline Coleno, Christophe Zimmer, Edouard Bertrand, Thomas Walter, Florian Mueller. FISH-quant v2: a scalable and modular analysis tool for smFISH image analysis. bioRxiv (2021) https://doi.org/10.1101/2021.07.20.453024
