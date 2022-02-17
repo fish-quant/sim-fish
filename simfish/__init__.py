@@ -15,6 +15,7 @@ The simfish package includes function to simulate RNA spots and FISH images in
 __version__ = "0.1.0dev"
 
 
+from .utils import load_extract_template
 from .utils import read_index_template
 from .utils import build_templates
 from .utils import build_template
@@ -39,6 +40,7 @@ from .image_simulation import simulate_image
 
 
 _utils = [
+    "load_extract_template",
     "read_index_template",
     "build_templates",
     "build_template"]

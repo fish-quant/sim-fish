@@ -3,16 +3,81 @@
 # License: BSD 3 clause
 
 """
-Utility functions for bigfish.stack subpackage.
+Utility functions for simfish package.
 """
 
 import os
+import sys
+import zipfile
+
 import numpy as np
 import pandas as pd
+
 import bigfish.stack as stack
+
+from urllib.request import urlretrieve
 
 
 # ### Templates ###
+
+def load_extract_template(path_output, verbose=True):
+    """Download template dataset zipfile and extract it.
+
+    Parameters
+    ----------
+    path_output : str
+        Path location to save dataset.
+    verbose : bool, default=True
+        Show download progression.
+
+    Returns
+    -------
+    path_final : str
+        Path of the downloaded dataset.
+
+    """
+    # check parameters
+    stack.check_parameter(
+        path_output=str,
+        verbose=bool)
+
+    # get remote url
+    remote_url = "https://zenodo.org/record/6106718/files/templates.zip"
+
+    # get output paths
+    path_download = os.path.join(path_output, "templates.zip")
+    path_final = os.path.join(path_output, "templates")
+
+    # download and save data
+    if verbose:
+        urlretrieve(remote_url, path_download, _reporthook)
+        print()
+    else:
+        urlretrieve(remote_url, path_download)
+
+    # extract zipfile
+    with zipfile.ZipFile(path_download, 'r') as zip_ref:
+        zip_ref.extractall(path_output)
+
+    # remove zipfile
+    os.remove(path_download)
+    if verbose:
+        print("Templates downloaded and ready!")
+
+    return path_final
+
+
+def _reporthook(count, block_size, total_size):
+    if count == 0:
+        pass
+    else:
+        progress_size = int(count * block_size / (1024 * 1024))
+        percent = min(int(count * block_size * 100 / total_size), 100)
+        sys.stdout.write("\r...{0}% ({1}MB)".format(percent, progress_size))
+        sys.stdout.flush()
+
+    return
+
 
 def read_index_template(path_template_directory):
     """Load and read dataframe with templates metadata.
