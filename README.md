@@ -77,6 +77,7 @@ If you have any question relative to the repository, please open an [issue](http
 
 Version 0.Y.0:
 - Improve background noise simulation.
+- Improve PSF simulation.
 - Cell and nucleus simulation in 2D.
 - Cell and nucleus simulation in 3D.
 - Allow benchmark and valuation pipeline.
