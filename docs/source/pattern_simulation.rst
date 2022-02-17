@@ -12,7 +12,7 @@ generated spots. Maps are built from specific cell templates:
 
 * :func:`simfish.build_probability_map`
 
-Several map are available in 2D or 3D:
+Several map are available in 3D:
 
 * :func:`simfish.get_random_probability_map`
 * :func:`simfish.get_random_out_probability_map`
