@@ -7,6 +7,19 @@ Image simulation
 
 Functions used to simulate spot images, in 2D and 3D.
 
++------------------+------------------+------------------+
+|      |pic1|      |      |pic2|      |      |pic3|      |
++------------------+------------------+------------------+
+
+.. |pic1| image:: ../../images/plot_spot.png
+   :width: 100%
+
+.. |pic2| image:: ../../images/plot_cluster_zoom.png
+   :width: 100%
+
+.. |pic3| image:: ../../images/plot_cluster.png
+   :width: 100%
+
 Simulation is performed in three steps:
 
 #. We simulate ground truth coordinates.

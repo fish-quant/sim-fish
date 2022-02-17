@@ -7,6 +7,41 @@ Pattern simulation
 
 Functions used to simulate localization patterns.
 
++------------------+------------------+------------------+
+|    **Random**    |     **Foci**     | **Intranuclear** |
++------------------+------------------+------------------+
+|      |pic1|      |      |pic2|      |      |pic3|      |
++------------------+------------------+------------------+
+| **Nuclear_edge** |  **Perinuclear** |   **Cell_edge**  |
++------------------+------------------+------------------+
+|      |pic4|      |      |pic5|      |      |pic6|      |
++------------------+------------------+------------------+
+|  **Protrusion**  |                  |                  |
++------------------+------------------+------------------+
+|      |pic7|      |                  |                  |
++------------------+------------------+------------------+
+
+.. |pic1| image:: ../../images/random_1_300.png
+   :width: 100%
+
+.. |pic2| image:: ../../images/foci_1_300.png
+   :width: 100%
+
+.. |pic3| image:: ../../images/intranuclear_1_300.png
+   :width: 100%
+
+.. |pic4| image:: ../../images/nuclear_edge_1_300.png
+   :width: 100%
+
+.. |pic5| image:: ../../images/perinuclear_1_300.png
+   :width: 100%
+
+.. |pic6| image:: ../../images/cell_edge_1_300.png
+   :width: 100%
+
+.. |pic7| image:: ../../images/protrusion_1_300.png
+   :width: 100%
+
 We build a map of probability distribution to bias the localization of
 generated spots. Maps are built from specific cell templates:
 

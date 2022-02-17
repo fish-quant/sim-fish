@@ -6,6 +6,19 @@
 Sim-FISH
 ********
 
++------------------+------------------+------------------+
+|      |pic1|      |      |pic2|      |      |pic3|      |
++------------------+------------------+------------------+
+
+.. |pic1| image:: ../../images/plot_spot.png
+   :width: 100%
+
+.. |pic2| image:: ../../images/plot_cluster_zoom.png
+   :width: 100%
+
+.. |pic3| image:: ../../images/perinuclear_1_300.png
+   :width: 100%
+
 Getting started
 ===============
 

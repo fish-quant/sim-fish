@@ -68,6 +68,3 @@ _images = [
     "simulate_image"]
 
 __all__ = _patterns + _spots + _noise + _images
-
-# TODO add image in readme and documentation
-# TODO build package and push to pypi

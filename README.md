@@ -9,6 +9,18 @@
 
 **Sim-FISH** is a python package to **simulate smFISH images**. The package allows the user simulate and localize spots, cells and nuclei. The ultimate goal is to provide toy images to **experiment, train and evaluate smFISH statistical analysis**.
 
+User can simulate images of spots and clusters with different level of noise...
+
+| Spots | Clustered  spots |
+| ------------- | ------------- |
+| ![](images/plot_spot.png "Spots") | ![](images/plot_cluster_zoom.png "Clustered spots") |
+
+... or localization patterns within  subcellular regions.
+
+| Perinuclear pattern | Protrusion pattern |
+| ------------- | ------------- |
+| ![](images/perinuclear_1_300.png "Perinuclear pattern") | ![](images/protrusion_1_300.png "Perinuclear pattern") |
+
 ## Installation
 
 ### Dependencies
