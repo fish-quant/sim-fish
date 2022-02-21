@@ -31,19 +31,20 @@ with open("README.md", "r") as f:
 # A list of classifiers to categorize the project (only used for searching and
 # browsing projects on PyPI)
 CLASSIFIERS = [
-    'Development Status :: 4 - Beta',
+    'Development Status :: 5 - Production/Stable',
     'Intended Audience :: Science/Research',
     'Intended Audience :: Developers',
     'Topic :: Software Development',
     'Topic :: Scientific/Engineering',
     'Topic :: Scientific/Engineering :: Bio-Informatics',
-    'Topic :: Scientific/Engineering :: Artificial Intelligence',
     'Topic :: Scientific/Engineering :: Image Processing',
-    'Topic :: Scientific/Engineering :: Image Recognition',
     'Operating System :: Unix',
     'Operating System :: MacOS',
     'Programming Language :: Python',
     'Programming Language :: Python :: 3.6',
+    'Programming Language :: Python :: 3.7',
+    'Programming Language :: Python :: 3.8',
+    'Programming Language :: Python :: 3.9',
     'License :: OSI Approved :: BSD License']
 
 # setup
