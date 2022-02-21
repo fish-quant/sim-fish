@@ -21,13 +21,6 @@ from .utils import build_templates
 from .utils import build_template
 
 from .pattern_simulation import simulate_ground_truth
-from .pattern_simulation import get_random_probability_map
-from .pattern_simulation import get_random_out_probability_map
-from .pattern_simulation import get_random_in_probability_map
-from .pattern_simulation import get_nuclear_edge_probability_map
-from .pattern_simulation import get_perinuclear_probability_map
-from .pattern_simulation import get_cell_edge_probability_map
-from .pattern_simulation import get_protrusion_probability_map
 from .pattern_simulation import build_probability_map
 from .pattern_simulation import simulate_localization_pattern
 
@@ -47,13 +40,6 @@ _utils = [
 
 _patterns = [
     "simulate_ground_truth",
-    "get_random_probability_map",
-    "get_random_out_probability_map",
-    "get_random_in_probability_map",
-    "get_nuclear_edge_probability_map",
-    "get_perinuclear_probability_map",
-    "get_cell_edge_probability_map",
-    "get_protrusion_probability_map",
     "build_probability_map",
     "simulate_localization_pattern"]
 

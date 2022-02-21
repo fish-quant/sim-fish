@@ -598,7 +598,7 @@ def _sample_coordinates(n, probability_map):
 
 # ### Probability maps ###
 
-def get_random_probability_map(cell_mask):
+def _get_random_probability_map(cell_mask):
     """Compute a probability map to sample a random pattern.
 
     Parameters
@@ -622,14 +622,11 @@ def get_random_probability_map(cell_mask):
     return probability_map
 
 
-def get_random_out_probability_map(strength, cell_mask, nuc_mask):
+def _get_random_out_probability_map(cell_mask, nuc_mask):
     """Compute a probability map to sample a random pattern outside nucleus.
 
     Parameters
     ----------
-    strength : int or float
-        Strength of the pattern, from 0 to 1 (0 means random pattern and 1 a
-        perfect pattern).
     cell_mask : np.ndarray, bool
         Binary mask of the cell surface with shape (z, y, x).
     nuc_mask : np.ndarray, bool
@@ -644,35 +641,20 @@ def get_random_out_probability_map(strength, cell_mask, nuc_mask):
     # check parameters
     stack.check_array(cell_mask, ndim=3, dtype=bool)
     stack.check_array(nuc_mask, ndim=3, dtype=bool)
-    stack.check_parameter(strength=(int, float))
-    if strength < 0 or strength > 1:
-        raise ValueError("Parameter 'strength' should be between 0 and 1.")
 
-    # random probability map
-    random_probability_map = get_random_probability_map(cell_mask)
-
-    # probability map with pattern
-    pattern_probability_map = cell_mask.copy().astype(np.float32)
-    pattern_probability_map[nuc_mask] = 0.
-    pattern_probability_map /= pattern_probability_map.sum()
-
-    # modulate probability map according to strength parameter
-    random_probability_map *= (1 - strength)
-    pattern_probability_map *= strength
-    probability_map = random_probability_map + pattern_probability_map
+    # random out probability map
+    probability_map = cell_mask.copy().astype(np.float32)
+    probability_map[nuc_mask] = 0.
     probability_map /= probability_map.sum()
 
     return probability_map
 
 
-def get_random_in_probability_map(strength, cell_mask, nuc_mask):
+def _get_random_in_probability_map(cell_mask, nuc_mask):
     """Compute a probability map to sample a random pattern inside nucleus.
 
     Parameters
     ----------
-    strength : int or float
-        Strength of the pattern, from 0 to 1 (0 means random pattern and 1 a
-        perfect pattern).
     cell_mask : np.ndarray, bool
         Binary mask of the cell surface with shape (z, y, x).
     nuc_mask : np.ndarray, bool
@@ -687,34 +669,19 @@ def get_random_in_probability_map(strength, cell_mask, nuc_mask):
     # check parameters
     stack.check_array(cell_mask, ndim=3, dtype=bool)
     stack.check_array(nuc_mask, ndim=3, dtype=bool)
-    stack.check_parameter(strength=(int, float))
-    if strength < 0 or strength > 1:
-        raise ValueError("Parameter 'strength' should be between 0 and 1.")
 
-    # random probability map
-    random_probability_map = get_random_probability_map(cell_mask)
-
-    # probability map with pattern
-    pattern_probability_map = nuc_mask.copy().astype(np.float32)
-    pattern_probability_map /= pattern_probability_map.sum()
-
-    # modulate probability map according to strength parameter
-    random_probability_map *= (1 - strength)
-    pattern_probability_map *= strength
-    probability_map = random_probability_map + pattern_probability_map
+    # random in probability map
+    probability_map = nuc_mask.copy().astype(np.float32)
     probability_map /= probability_map.sum()
 
     return probability_map
 
 
-def get_nuclear_edge_probability_map(strength, cell_mask, nuc_map):
+def _get_nuclear_edge_probability_map(cell_mask, nuc_map):
     """Compute a probability map to sample a nuclear edge pattern.
 
     Parameters
     ----------
-    strength : int or float
-        Strength of the pattern, from 0 to 1 (0 means random pattern and 1 a
-        perfect pattern).
     cell_mask : np.ndarray, bool
         Binary mask of the cell surface with shape (z, y, x).
     nuc_map : np.ndarray, np.float32
@@ -729,37 +696,22 @@ def get_nuclear_edge_probability_map(strength, cell_mask, nuc_map):
     # check parameters
     stack.check_array(cell_mask, ndim=3, dtype=bool)
     stack.check_array(nuc_map, ndim=3, dtype=[np.float32,  np.float64])
-    stack.check_parameter(strength=(int, float))
-    if strength < 0 or strength > 1:
-        raise ValueError("Parameter 'strength' should be between 0 and 1.")
 
-    # random probability map
-    random_probability_map = get_random_probability_map(cell_mask)
-
-    # probability map with pattern
-    pattern_probability_map = nuc_map.copy().astype(np.float32)
-    pattern_probability_map[nuc_map > 2.] = 0.
-    pattern_probability_map[nuc_map <= 2.] = 1.
-    pattern_probability_map[~cell_mask] = 0.
-    pattern_probability_map /= pattern_probability_map.sum()
-
-    # modulate probability map according to strength parameter
-    random_probability_map *= (1 - strength)
-    pattern_probability_map *= strength
-    probability_map = random_probability_map + pattern_probability_map
+    # nuclear edge probability map
+    probability_map = nuc_map.copy().astype(np.float32)
+    probability_map[nuc_map > 2.] = 0.
+    probability_map[nuc_map <= 2.] = 1.
+    probability_map[~cell_mask] = 0.
     probability_map /= probability_map.sum()
 
     return probability_map
 
 
-def get_perinuclear_probability_map(strength, cell_mask, cell_map, nuc_mask):
+def _get_perinuclear_probability_map(cell_mask, cell_map, nuc_mask):
     """Compute a probability map to sample a perinuclear pattern.
 
     Parameters
     ----------
-    strength : int or float
-        Strength of the pattern, from 0 to 1 (0 means random pattern and 1 a
-        perfect pattern).
     cell_mask : np.ndarray, bool
         Binary mask of the cell surface with shape (z, y, x).
     cell_map : np.ndarray, np.float32
@@ -777,37 +729,22 @@ def get_perinuclear_probability_map(strength, cell_mask, cell_map, nuc_mask):
     stack.check_array(cell_mask, ndim=3, dtype=bool)
     stack.check_array(cell_map, ndim=3, dtype=[np.float32, np.float64])
     stack.check_array(nuc_mask, ndim=3, dtype=bool)
-    stack.check_parameter(strength=(int, float))
-    if strength < 0 or strength > 1:
-        raise ValueError("Parameter 'strength' should be between 0 and 1.")
 
-    # random probability map
-    random_probability_map = get_random_probability_map(cell_mask)
-
-    # probability map with pattern
-    pattern_probability_map = cell_map.copy().astype(np.float32)
-    pattern_probability_map **= 2
-    pattern_probability_map[nuc_mask] = 0.
-    pattern_probability_map[~cell_mask] = 0.
-    pattern_probability_map /= pattern_probability_map.sum()
-
-    # modulate probability map according to strength parameter
-    random_probability_map *= (1 - strength)
-    pattern_probability_map *= strength
-    probability_map = random_probability_map + pattern_probability_map
+    # perinuclear probability map
+    probability_map = cell_map.copy().astype(np.float32)
+    probability_map **= 2
+    probability_map[nuc_mask] = 0.
+    probability_map[~cell_mask] = 0.
     probability_map /= probability_map.sum()
 
     return probability_map
 
 
-def get_cell_edge_probability_map(strength, cell_mask, cell_map, nuc_mask):
+def _get_cell_edge_probability_map(cell_mask, cell_map, nuc_mask):
     """Compute a probability map to sample a cell edge pattern.
 
     Parameters
     ----------
-    strength : int or float
-        Strength of the pattern, from 0 to 1 (0 means random pattern and 1 a
-        perfect pattern).
     cell_mask : np.ndarray, bool
         Binary mask of the cell surface with shape (z, y, x).
     cell_map : np.ndarray, np.float32
@@ -825,32 +762,19 @@ def get_cell_edge_probability_map(strength, cell_mask, cell_map, nuc_mask):
     stack.check_array(cell_mask, ndim=3, dtype=bool)
     stack.check_array(cell_map, ndim=3, dtype=[np.float32, np.float64])
     stack.check_array(nuc_mask, ndim=3, dtype=bool)
-    stack.check_parameter(strength=(int, float))
-    if strength < 0 or strength > 1:
-        raise ValueError("Parameter 'strength' should be between 0 and 1.")
 
-    # random probability map
-    random_probability_map = get_random_probability_map(cell_mask)
-
-    # probability map with pattern
-    pattern_probability_map = cell_map.copy().astype(np.float32)
-    pattern_probability_map[cell_map > 2.] = 0.
-    pattern_probability_map[cell_map <= 2.] = 1.
-    pattern_probability_map[~cell_mask] = 0.
-    pattern_probability_map[nuc_mask] = 0.
-    pattern_probability_map /= pattern_probability_map.sum()
-
-    # modulate probability map according to strength parameter
-    random_probability_map *= (1 - strength)
-    pattern_probability_map *= strength
-    probability_map = random_probability_map + pattern_probability_map
+    # cell edge probability map
+    probability_map = cell_map.copy().astype(np.float32)
+    probability_map[cell_map > 2.] = 0.
+    probability_map[cell_map <= 2.] = 1.
+    probability_map[~cell_mask] = 0.
+    probability_map[nuc_mask] = 0.
     probability_map /= probability_map.sum()
 
     return probability_map
 
 
-def get_protrusion_probability_map(
-        strength,
+def _get_protrusion_probability_map(
         cell_mask,
         nuc_mask,
         protrusion_mask):
@@ -858,9 +782,6 @@ def get_protrusion_probability_map(
 
     Parameters
     ----------
-    strength : int or float
-        Strength of the pattern, from 0 to 1 (0 means random pattern and 1 a
-        perfect pattern).
     cell_mask : np.ndarray, bool
         Binary mask of the cell surface with shape (z, y, x).
     nuc_mask : np.ndarray, bool
@@ -878,25 +799,13 @@ def get_protrusion_probability_map(
     stack.check_array(cell_mask, ndim=3, dtype=bool)
     stack.check_array(nuc_mask, ndim=3, dtype=bool)
     stack.check_array(protrusion_mask, ndim=2, dtype=bool)
-    stack.check_parameter(strength=(int, float))
-    if strength < 0 or strength > 1:
-        raise ValueError("Parameter 'strength' should be between 0 and 1.")
 
-    # random probability map
-    random_probability_map = get_random_probability_map(cell_mask)
-
-    # probability map with pattern
-    pattern_probability_map = [protrusion_mask] * cell_mask.shape[0]
-    pattern_probability_map = np.stack(pattern_probability_map, axis=0)
-    pattern_probability_map = pattern_probability_map.astype(np.float32)
-    pattern_probability_map[nuc_mask] = 0.
-    pattern_probability_map[~cell_mask] = 0.
-    pattern_probability_map /= pattern_probability_map.sum()
-
-    # modulate probability map according to strength parameter
-    random_probability_map *= (1 - strength)
-    pattern_probability_map *= strength
-    probability_map = random_probability_map + pattern_probability_map
+    # protrusion probability map
+    probability_map = [protrusion_mask] * cell_mask.shape[0]
+    probability_map = np.stack(probability_map, axis=0)
+    probability_map = probability_map.astype(np.float32)
+    probability_map[nuc_mask] = 0.
+    probability_map[~cell_mask] = 0.
     probability_map /= probability_map.sum()
 
     return probability_map
@@ -907,7 +816,6 @@ def build_probability_map(
         i_cell=None,
         index_template=None,
         map_distribution="random",
-        strength=0.5,
         return_masks=False):
     """Build a template and its probability map to sample spot coordinates.
 
@@ -929,9 +837,6 @@ def build_probability_map(
         Probability distribution map to generate among 'random', 'random_out',
         'random_in', 'nuclear_edge', 'perinuclear', 'cell_edge' and
         'protrusion'.
-    strength : int or float, default=0.5
-        Strength of the pattern, from 0 to 1 (0 means random pattern and 1 a
-        perfect pattern).
     return_masks : bool, default=False
         Return cell and nucleus binary masks.
 
@@ -974,25 +879,22 @@ def build_probability_map(
     # get probability map
     probability_map = None
     if map_distribution == "random":
-        probability_map = get_random_probability_map(cell_mask)
+        probability_map = _get_random_probability_map(cell_mask)
     elif map_distribution == "random_out":
-        probability_map = get_random_out_probability_map(
-            strength, cell_mask, nuc_mask)
+        probability_map = _get_random_out_probability_map(cell_mask, nuc_mask)
     elif map_distribution == "random_in":
-        probability_map = get_random_in_probability_map(
-            strength, cell_mask, nuc_mask)
+        probability_map = _get_random_in_probability_map(cell_mask, nuc_mask)
     elif map_distribution == "nuclear_edge":
-        probability_map = get_nuclear_edge_probability_map(
-            strength, cell_mask, nuc_map)
+        probability_map = _get_nuclear_edge_probability_map(cell_mask, nuc_map)
     elif map_distribution == "perinuclear":
-        probability_map = get_perinuclear_probability_map(
-            strength, cell_mask, cell_map, nuc_mask)
+        probability_map = _get_perinuclear_probability_map(
+            cell_mask, cell_map, nuc_mask)
     elif map_distribution == "cell_edge":
-        probability_map = get_cell_edge_probability_map(
-            strength, cell_mask, cell_map, nuc_mask)
+        probability_map = _get_cell_edge_probability_map(
+            cell_mask, cell_map, nuc_mask)
     elif map_distribution == "protrusion":
-        probability_map = get_protrusion_probability_map(
-            strength, cell_mask, nuc_mask, protrusion_mask)
+        probability_map = _get_protrusion_probability_map(
+            cell_mask, nuc_mask, protrusion_mask)
 
     if return_masks:
         return probability_map, cell_mask, nuc_mask
@@ -1008,7 +910,7 @@ def simulate_localization_pattern(
         i_cell=None,
         index_template=None,
         pattern="random",
-        strength=0.5):
+        proportion_pattern=0.5):
     """Simulate spot coordinates with a specific localization pattern from a
     cell template.
 
@@ -1032,9 +934,9 @@ def simulate_localization_pattern(
         Spot localization pattern to simulate among 'random', 'foci',
         'intranuclear', 'nuclear_edge', 'perinuclear', 'cell_edge' and
         'protrusion'.
-    strength : int or float, default=0.5
-        Strength of the pattern, from 0 to 1 (0 means random pattern and 1 a
-        perfect pattern).
+    proportion_pattern : int or float, default=0.5
+        Proportion of spots to localize with the pattern. Value between 0 and 1
+        (0 means random pattern and 1 a perfect pattern).
 
     Returns
     -------
@@ -1054,7 +956,8 @@ def simulate_localization_pattern(
     # check parameter
     stack.check_parameter(
         n_spots=int,
-        pattern=str)
+        pattern=str,
+        proportion_pattern=(int, float))
     if pattern not in ["random", "foci", "intranuclear", "nuclear_edge",
                        "perinuclear", "cell_edge", "protrusion"]:
         raise ValueError("Patterns available are: 'random', 'foci', "
@@ -1068,52 +971,17 @@ def simulate_localization_pattern(
             n_spots=n_spots,
             i_cell=i_cell,
             index_template=index_template,
-            strength=strength)
+            proportion_pattern=proportion_pattern)
 
-    # simulate protrusion pattern (special case)
-    elif pattern == "protrusion":
-        ground_truth, cell_mask, nuc_mask, ndim = _simulate_protrusion_pattern(
-            path_template_directory=path_template_directory,
-            n_spots=n_spots,
-            i_cell=i_cell,
-            index_template=index_template,
-            strength=strength)
-
-    # simulate any other localization pattern
+    # simulate any other pattern
     else:
-        # choose probability map
-        if pattern in ["intranuclear"]:
-            map_distribution = "random_in"
-        elif pattern == "nuclear_edge":
-            map_distribution = "nuclear_edge"
-        elif pattern == "perinuclear":
-            map_distribution = "perinuclear"
-        elif pattern == "cell_edge":
-            map_distribution = "cell_edge"
-        else:
-            map_distribution = "random"
-
-        # build probability map
-        probability_map, cell_mask, nuc_mask = build_probability_map(
+        ground_truth, cell_mask, nuc_mask, ndim = _simulate_pattern_area(
             path_template_directory=path_template_directory,
+            n_spots=n_spots,
             i_cell=i_cell,
             index_template=index_template,
-            map_distribution=map_distribution,
-            strength=strength,
-            return_masks=True)
-
-        # simulate ground truth
-        frame_shape = probability_map.shape
-        ndim = len(frame_shape)
-        voxel_size = (100,) * ndim
-        sigma = (150,) * ndim
-        ground_truth = simulate_ground_truth(
-            ndim=ndim,
-            n_spots=n_spots,
-            frame_shape=frame_shape,
-            voxel_size=voxel_size,
-            sigma=sigma,
-            probability_map=probability_map)
+            pattern=pattern,
+            proportion_pattern=proportion_pattern)
 
     # get instance coordinates
     cell_mask_2d = cell_mask.max(axis=0).astype(np.uint8)
@@ -1133,7 +1001,7 @@ def _simulate_foci_pattern(
         n_spots,
         i_cell,
         index_template,
-        strength):
+        proportion_pattern):
     """Simulate foci localization pattern. Spots are localized uniformly in
     the cell, but clusters are simulated outside nucleus accordingly to the
     'strength' parameter.
@@ -1154,9 +1022,9 @@ def _simulate_foci_pattern(
         * 'id' instance id.
         * 'shape' shape of the cell image (with the format '{z}_{y}_{x}').
         * 'protrusion_flag' presence or not of protrusion in  the instance.
-    strength : int or float
-        Strength of the pattern, from 0 to 1 (0 means random pattern and 1 a
-        perfect pattern).
+    proportion_pattern : int or float
+        Proportion of spots to localize with the pattern. Value between 0 and 1
+        (0 means random pattern and 1 a perfect pattern).
 
     Returns
     -------
@@ -1185,27 +1053,23 @@ def _simulate_foci_pattern(
         i_cell=i_cell,
         index_template=index_template,
         map_distribution="random_out",
-        strength=1,
         return_masks=True)
     probability_map_random_in = build_probability_map(
         path_template_directory=path_template_directory,
         i_cell=i_cell,
         index_template=index_template,
-        map_distribution="random_in",
-        strength=1)
+        map_distribution="random_in")
 
-    # set number and size of clusters
-    n_spots_cluster = np.random.randint(5, 11)
-    n_spots_cluster += 2 * int(n_spots / 100)
-    n_spots_cluster_rate = _draw_spots_cluster_rate(strength)
-    n_spots_cluster_total = int(n_spots * n_spots_cluster_rate)
-    n_clusters = int(n_spots_cluster_total / n_spots_cluster)
+    # set number and size of foci
+    n_spots_per_foci = np.random.randint(5, 21)
+    n_spots_foci = int(n_spots * proportion_pattern)
+    n_foci = int(n_spots_foci / n_spots_per_foci)
 
     # balance proportion of spots simulated inside and outside nucleus
-    volume_inside = nuc_mask.sum()
-    proportion_inside = volume_inside / cell_mask.sum()
-    n_spots_inside = int((n_spots - n_spots_cluster_total) * proportion_inside)
-    n_spots_outside = n_spots - n_spots_inside
+    volume_nuc = nuc_mask.sum()
+    proportion_nuc = volume_nuc / cell_mask.sum()
+    n_spots_nuc = int((n_spots - n_spots_foci) * proportion_nuc)
+    n_spots_cell = n_spots - n_spots_nuc
 
     # simulate ground truth for clustered spots (outside nucleus)
     frame_shape = probability_map_random_out.shape
@@ -1214,9 +1078,9 @@ def _simulate_foci_pattern(
     sigma = (150,) * ndim
     ground_truth_outside = simulate_ground_truth(
         ndim=ndim,
-        n_spots=n_spots_outside,
-        n_clusters=n_clusters,
-        n_spots_cluster=n_spots_cluster,
+        n_spots=n_spots_cell,
+        n_clusters=n_foci,
+        n_spots_cluster=n_spots_per_foci,
         random_n_spots_cluster=True,
         frame_shape=frame_shape,
         voxel_size=voxel_size,
@@ -1226,7 +1090,7 @@ def _simulate_foci_pattern(
     # simulate ground truth for random spots (inside nucleus)
     ground_truth_inside = simulate_ground_truth(
         ndim=ndim,
-        n_spots=n_spots_inside,
+        n_spots=n_spots_nuc,
         frame_shape=frame_shape,
         voxel_size=voxel_size,
         sigma=sigma,
@@ -1239,38 +1103,15 @@ def _simulate_foci_pattern(
     return ground_truth, cell_mask, nuc_mask, ndim
 
 
-def _draw_spots_cluster_rate(strength):
-    """Draw a value for the proportion of spots clustered to simulate,
-    according to the strength of the pattern. Value is between 0 and 30% and
-    has a quadratic growth.
-
-    Parameters
-    ----------
-    strength : int or float
-        Strength of the pattern, from 0 to 1 (0 means random pattern and 1 a
-        perfect pattern).
-
-    Returns
-    -------
-    n_spots_cluster_rate : float
-        Proportion of spots to simulate per cluster.
-
-    """
-    # code: np.round(np.power(np.linspace(0, 0.54772, 11), 2), 3)
-    range_value = [0., 0.003, 0.012, 0.027, 0.048,
-                   0.075, 0.108, 0.147, 0.192, 0.243, 0.3]
-    n_spots_cluster_rate = range_value[int(strength * 10)]
-
-    return n_spots_cluster_rate
-
-
-def _simulate_protrusion_pattern(
+def _simulate_pattern_area(
         path_template_directory,
         n_spots,
         i_cell,
         index_template,
-        strength):
-    """Simulate protrusion localization pattern.
+        pattern,
+        proportion_pattern):
+    """Simulate localization pattern defined as an oversampling of spots in a
+    subcellular region.
 
     Parameters
     ----------
@@ -1288,9 +1129,12 @@ def _simulate_protrusion_pattern(
         * 'id' instance id.
         * 'shape' shape of the cell image (with the format '{z}_{y}_{x}').
         * 'protrusion_flag' presence or not of protrusion in  the instance.
-    strength : int or float
-        Strength of the pattern, from 0 to 1 (0 means random pattern and 1 a
-        perfect pattern).
+    pattern : str
+        Spot localization pattern to simulate among 'intranuclear',
+        'nuclear_edge', 'perinuclear', 'cell_edge', 'protrusion' and 'random'.
+    proportion_pattern : int or float
+        Proportion of spots to localize with the pattern. Value between 0 and 1
+        (0 means random pattern and 1 a perfect pattern).
 
     Returns
     -------
@@ -1312,77 +1156,84 @@ def _simulate_protrusion_pattern(
         Number of dimensions of the simulated image (2 or 3).
 
     """
-    # build probability maps
-    probability_map_protrusion, cell_mask, nuc_mask = build_probability_map(
+    # define probability map needed
+    if pattern == "intranuclear":
+        map_distribution = "random_in"
+    elif pattern == "nuclear_edge":
+        map_distribution = "nuclear_edge"
+    elif pattern == "perinuclear":
+        map_distribution = "perinuclear"
+    elif pattern == "cell_edge":
+        map_distribution = "cell_edge"
+    elif pattern == "protrusion":
+        map_distribution = "protrusion"
+    else:
+        map_distribution = "random"
+
+    # build probability map with the targeted region
+    probability_map_pattern, cell_mask, nuc_mask = build_probability_map(
         path_template_directory=path_template_directory,
         i_cell=i_cell,
         index_template=index_template,
-        map_distribution="protrusion",
-        strength=1,
+        map_distribution=map_distribution,
         return_masks=True)
-    probability_map_noprotrusion = cell_mask.copy().astype(np.float32)
-    probability_map_noprotrusion[probability_map_protrusion > 0] = 0.
-    probability_map_noprotrusion /= probability_map_noprotrusion.sum()
 
-    # bias ratio of spots simulated inside and outside protrusion
-    ratio_protrusion = _draw_spots_ratio(strength)
-    protrusion_mask_2d = np.max(probability_map_protrusion > 0, axis=0)
-    cell_mask_2d = np.max(cell_mask, axis=0)
-    proportion_protrusion = protrusion_mask_2d.sum() / cell_mask_2d.sum()
-    proportion_protrusion *= ratio_protrusion
-    n_spots_protrusion = int(n_spots * proportion_protrusion)
-    n_spots_noprotrusion = n_spots - n_spots_protrusion
+    # no localization pattern
+    if pattern == "random":
 
-    # simulate ground truth for protrusion spots
-    frame_shape = cell_mask.shape
-    ndim = len(frame_shape)
-    voxel_size = (100,) * ndim
-    sigma = (150,) * ndim
-    ground_truth_protrusion = simulate_ground_truth(
-        ndim=ndim,
-        n_spots=n_spots_protrusion,
-        frame_shape=frame_shape,
-        voxel_size=voxel_size,
-        sigma=sigma,
-        probability_map=probability_map_protrusion)
+        # simulate ground truth for random spots
+        frame_shape = cell_mask.shape
+        ndim = len(frame_shape)
+        voxel_size = (100,) * ndim
+        sigma = (150,) * ndim
+        ground_truth = simulate_ground_truth(
+            ndim=ndim,
+            n_spots=n_spots,
+            frame_shape=frame_shape,
+            voxel_size=voxel_size,
+            sigma=sigma,
+            probability_map=probability_map_pattern)
 
-    # simulate ground truth for random spots (outside protrusion)
-    ground_truth_noprotrusion = simulate_ground_truth(
-        ndim=ndim,
-        n_spots=n_spots_noprotrusion,
-        frame_shape=frame_shape,
-        voxel_size=voxel_size,
-        sigma=sigma,
-        probability_map=probability_map_noprotrusion)
+    # localization pattern
+    else:
 
-    # stack simulated spots
-    ground_truth = np.concatenate(
-        (ground_truth_protrusion, ground_truth_noprotrusion), axis=0)
+        # build probability map without the targeted region
+        if pattern == "perinuclear":
+            probability_map_nopattern = cell_mask.copy().astype(np.float32)
+            probability_map_nopattern /= probability_map_nopattern.sum()
+        else:
+            probability_map_nopattern = cell_mask.copy().astype(np.float32)
+            probability_map_nopattern[probability_map_pattern > 0] = 0.
+            probability_map_nopattern /= probability_map_nopattern.sum()
+
+        # Get the number of spots following the pattern
+        n_spots_pattern = int(n_spots * proportion_pattern)
+        n_spots_nopattern = n_spots - n_spots_pattern
+
+        # simulate ground truth for spots in targeted region
+        frame_shape = cell_mask.shape
+        ndim = len(frame_shape)
+        voxel_size = (100,) * ndim
+        sigma = (150,) * ndim
+        ground_truth_pattern = simulate_ground_truth(
+            ndim=ndim,
+            n_spots=n_spots_pattern,
+            frame_shape=frame_shape,
+            voxel_size=voxel_size,
+            sigma=sigma,
+            probability_map=probability_map_pattern)
+
+        # simulate ground truth for random spots (outside targeted region)
+        ground_truth_nopattern = simulate_ground_truth(
+            ndim=ndim,
+            n_spots=n_spots_nopattern,
+            frame_shape=frame_shape,
+            voxel_size=voxel_size,
+            sigma=sigma,
+            probability_map=probability_map_nopattern)
+
+        # stack simulated spots
+        ground_truth = np.concatenate(
+            (ground_truth_pattern, ground_truth_nopattern), axis=0)
 
     return ground_truth, cell_mask, nuc_mask, ndim
-
-
-def _draw_spots_ratio(strength):
-    """Draw a density ratio to estimate the number of spots that should
-    localize in a specific region, according to the strength of the pattern.
-    This range takes values between 1 and 10 with a quadratic growth.
-
-    Parameters
-    ----------
-    strength : int or float
-        Strength of the pattern, from 0 to 1 (0 means random pattern and 1 a
-        perfect pattern).
-
-    Returns
-    -------
-    spots_ratio : float
-        Density ratio of spots to apply in a specific region (compare to the
-        rest of the cell).
-
-    """
-    # code: np.round(np.power(np.linspace(0, 3.0, num=11), 2), 3) + 1
-    range_value = [1., 1.09, 1.36, 1.81, 2.44,
-                   3.25, 4.24, 5.41, 6.76, 8.29, 10.]
-    spots_ratio = range_value[int(strength * 10)]
-
-    return spots_ratio

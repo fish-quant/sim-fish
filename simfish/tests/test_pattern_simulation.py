@@ -12,6 +12,8 @@ import simfish as sim
 
 # TODO add test for `probability_map` parameter
 # TODO add test for warnings and errors raised
+# TODO add test for `build_probability_map` function
+# TODO add test for `simulate_localization_pattern` function
 
 def test_format():
     # 2D simulation

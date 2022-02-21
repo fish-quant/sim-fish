@@ -17,9 +17,9 @@ User can simulate images of spots and clusters with different level of noise...
 
 ... or localization patterns within  subcellular regions.
 
-| Perinuclear pattern | Protrusion pattern |
+| Perinuclear pattern | Foci pattern |
 | ------------- | ------------- |
-| ![](images/perinuclear_1_300.png "Perinuclear pattern") | ![](images/protrusion_1_300.png "Perinuclear pattern") |
+| ![](images/perinuclear_1_300.png "Perinuclear pattern") | ![](images/foci_1_300.png "Foci pattern") |
 
 ## Installation
 
