@@ -1055,11 +1055,8 @@ def _simulate_foci_pattern(
         index_template=index_template,
         map_distribution="random_out",
         return_masks=True)
-    probability_map_random_in = build_probability_map(
-        path_template_directory=path_template_directory,
-        i_cell=i_cell,
-        index_template=index_template,
-        map_distribution="random_in")
+    probability_map_random_in = nuc_mask.copy().astype(np.float32)
+    probability_map_random_in /= probability_map_random_in.sum()
 
     # set number and size of foci
     n_spots_per_foci = np.random.randint(5, 21)
