@@ -904,6 +904,7 @@ def build_probability_map(
 
 # ### Localization patterns (coordinates only) ###
 
+# TODO to refactor (composition instead of imbrication)
 def simulate_localization_pattern(
         path_template_directory,
         n_spots,
