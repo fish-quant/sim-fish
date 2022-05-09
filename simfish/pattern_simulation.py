@@ -774,6 +774,39 @@ def _get_cell_edge_probability_map(cell_mask, cell_map, nuc_mask):
     return probability_map
 
 
+def _get_pericellular_probability_map(cell_mask, nuc_mask, nuc_map):
+    """Compute a probability map to sample a pericellular pattern.
+
+    Parameters
+    ----------
+    cell_mask : np.ndarray, bool
+        Binary mask of the cell surface with shape (z, y, x).
+    nuc_mask : np.ndarray, bool
+        Binary mask of the nucleus surface with shape (z, y, x).
+    nuc_map : np.ndarray, np.float32
+        Distance map from the nucleus edge with shape (z, y, x).
+
+    Returns
+    -------
+    probability_map : np.ndarray, np.float32
+        Probability map to sample spots coordinates with shape (z, y, x).
+
+    """
+    # check parameters
+    stack.check_array(cell_mask, ndim=3, dtype=bool)
+    stack.check_array(nuc_mask, ndim=3, dtype=bool)
+    stack.check_array(nuc_map, ndim=3, dtype=[np.float32, np.float64])
+
+    # pericellular probability map
+    probability_map = nuc_map.copy().astype(np.float32)
+    probability_map **= 2
+    probability_map[nuc_mask] = 0.
+    probability_map[~cell_mask] = 0.
+    probability_map /= probability_map.sum()
+
+    return probability_map
+
+
 def _get_protrusion_probability_map(
         cell_mask,
         nuc_mask,
@@ -835,8 +868,8 @@ def build_probability_map(
         * 'protrusion_flag' presence or not of protrusion in  the instance.
     map_distribution : str, default='random'
         Probability distribution map to generate among 'random', 'random_out',
-        'random_in', 'nuclear_edge', 'perinuclear', 'cell_edge' and
-        'protrusion'.
+        'random_in', 'nuclear_edge', 'perinuclear', 'cell_edge', 'pericellular'
+        and 'protrusion'.
     return_masks : bool, default=False
         Return cell and nucleus binary masks.
 
@@ -856,10 +889,11 @@ def build_probability_map(
         return_masks=bool)
     if map_distribution not in ["random", "random_out", "random_in",
                                 "nuclear_edge", "perinuclear", "cell_edge",
-                                "protrusion"]:
+                                "pericellular", "protrusion"]:
         raise ValueError("Probability maps available are: 'random', "
                          "'random_out', 'random_in', 'nuclear_edge', "
-                         "'perinuclear', 'cell_edge', 'protrusion'. Not {0}."
+                         "'perinuclear', 'cell_edge', 'pericellular', "
+                         "'protrusion'. Not {0}."
                          .format(map_distribution))
 
     # set protrusion flag
@@ -892,6 +926,9 @@ def build_probability_map(
     elif map_distribution == "cell_edge":
         probability_map = _get_cell_edge_probability_map(
             cell_mask, cell_map, nuc_mask)
+    elif map_distribution == "pericellular":
+        probability_map = _get_pericellular_probability_map(
+            cell_mask, nuc_mask, nuc_map)
     elif map_distribution == "protrusion":
         probability_map = _get_protrusion_probability_map(
             cell_mask, nuc_mask, protrusion_mask)
@@ -933,8 +970,8 @@ def simulate_localization_pattern(
         * 'protrusion_flag' presence or not of protrusion in  the instance.
     pattern : str, default='random'
         Spot localization pattern to simulate among 'random', 'foci',
-        'intranuclear', 'nuclear_edge', 'perinuclear', 'cell_edge' and
-        'protrusion'.
+        'intranuclear', 'extranuclear', 'nuclear_edge', 'perinuclear',
+        'cell_edge', 'pericellular' and 'protrusion'.
     proportion_pattern : int or float, default=0.5
         Proportion of spots to localize with the pattern. Value between 0 and 1
         (0 means random pattern and 1 a perfect pattern).
@@ -959,11 +996,13 @@ def simulate_localization_pattern(
         n_spots=int,
         pattern=str,
         proportion_pattern=(int, float))
-    if pattern not in ["random", "foci", "intranuclear", "nuclear_edge",
-                       "perinuclear", "cell_edge", "protrusion"]:
+    if pattern not in ["random", "foci", "intranuclear", "extranuclear",
+                       "nuclear_edge", "perinuclear", "cell_edge",
+                       "pericellular", "protrusion"]:
         raise ValueError("Patterns available are: 'random', 'foci', "
-                         "'intranuclear', 'nuclear_edge', 'perinuclear', "
-                         "'cell_edge', 'protrusion'. Not {0}.".format(pattern))
+                         "'intranuclear', 'extranuclear', 'nuclear_edge', "
+                         "'perinuclear', 'cell_edge', 'pericellular', "
+                         "'protrusion'. Not {0}.".format(pattern))
 
     # simulate foci pattern (special case)
     if pattern == "foci":
@@ -1129,7 +1168,8 @@ def _simulate_pattern_area(
         * 'protrusion_flag' presence or not of protrusion in  the instance.
     pattern : str
         Spot localization pattern to simulate among 'intranuclear',
-        'nuclear_edge', 'perinuclear', 'cell_edge', 'protrusion' and 'random'.
+        'extranuclear', 'nuclear_edge', 'perinuclear', 'cell_edge',
+        'pericellular', 'protrusion' and 'random'.
     proportion_pattern : int or float
         Proportion of spots to localize with the pattern. Value between 0 and 1
         (0 means random pattern and 1 a perfect pattern).
@@ -1157,12 +1197,16 @@ def _simulate_pattern_area(
     # define probability map needed
     if pattern == "intranuclear":
         map_distribution = "random_in"
+    elif pattern == "extranuclear":
+        map_distribution = "random_out"
     elif pattern == "nuclear_edge":
         map_distribution = "nuclear_edge"
     elif pattern == "perinuclear":
         map_distribution = "perinuclear"
     elif pattern == "cell_edge":
         map_distribution = "cell_edge"
+    elif pattern == "pericellular":
+        map_distribution = "pericellular"
     elif pattern == "protrusion":
         map_distribution = "protrusion"
     else:
@@ -1196,13 +1240,8 @@ def _simulate_pattern_area(
     else:
 
         # build probability map without the targeted region
-        if pattern == "perinuclear":
-            probability_map_nopattern = cell_mask.copy().astype(np.float32)
-            probability_map_nopattern /= probability_map_nopattern.sum()
-        else:
-            probability_map_nopattern = cell_mask.copy().astype(np.float32)
-            probability_map_nopattern[probability_map_pattern > 0] = 0.
-            probability_map_nopattern /= probability_map_nopattern.sum()
+        probability_map_nopattern = cell_mask.copy().astype(np.float32)
+        probability_map_nopattern /= probability_map_nopattern.sum()
 
         # Get the number of spots following the pattern
         n_spots_pattern = int(n_spots * proportion_pattern)
