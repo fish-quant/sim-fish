@@ -12,7 +12,7 @@ The simfish package includes function to simulate RNA spots and FISH images in
 # MINOR: new features
 # PATCH: backwards compatible bug fixes
 # MAJOR.MINOR.PATCHdev means a version under development
-__version__ = "0.2.0dev"
+__version__ = "0.2.0"
 
 
 from .utils import load_extract_template
