@@ -7,7 +7,7 @@ Pattern simulation
 
 Functions used to simulate localization patterns.
 
-We implemented 7 patterns (6 localized patterns + 1 default random pattern) in
+We implemented 9 patterns (8 localized patterns + 1 default random pattern) in
 3D. The percentage of localized spots defines the pattern strength:
 
 * **Random**
@@ -22,21 +22,29 @@ We implemented 7 patterns (6 localized patterns + 1 default random pattern) in
 
 |pic3|
 
-* **Nuclear edge**
+* **Extranuclear**
 
 |pic4|
 
-* **Perinuclear**
+* **Nuclear edge**
 
 |pic5|
 
-* **Cell edge**
+* **Perinuclear**
 
 |pic6|
 
-* **Protrusion**
+* **Cell edge**
 
 |pic7|
+
+* **Pericellular**
+
+|pic8|
+
+* **Protrusion**
+
+|pic9|
 
 .. |pic1| image:: ../../images/random_1_300.png
    :width: 50%
@@ -47,16 +55,22 @@ We implemented 7 patterns (6 localized patterns + 1 default random pattern) in
 .. |pic3| image:: ../../images/intranuclear_panel.png
    :width: 100%
 
-.. |pic4| image:: ../../images/nuclear_edge_panel.png
+.. |pic4| image:: ../../images/extranuclear_panel.png
    :width: 100%
 
-.. |pic5| image:: ../../images/perinuclear_panel.png
+.. |pic5| image:: ../../images/nuclear_edge_panel.png
    :width: 100%
 
-.. |pic6| image:: ../../images/cell_edge_panel.png
+.. |pic6| image:: ../../images/perinuclear_panel.png
    :width: 100%
 
-.. |pic7| image:: ../../images/protrusion_panel.png
+.. |pic7| image:: ../../images/cell_edge_panel.png
+   :width: 100%
+
+.. |pic8| image:: ../../images/pericellular_panel.png
+   :width: 100%
+
+.. |pic9| image:: ../../images/protrusion_panel.png
    :width: 100%
 
 We build a map of probability distribution to bias the localization of
