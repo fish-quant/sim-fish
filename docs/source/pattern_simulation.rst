@@ -7,7 +7,7 @@ Pattern simulation
 
 Functions used to simulate localization patterns.
 
-We implemented 7 patterns (6 localized patterns + 1 default random pattern) in
+We implemented 9 patterns (8 localized patterns + 1 default random pattern) in
 3D. The percentage of localized spots defines the pattern strength:
 
 * **Random**
